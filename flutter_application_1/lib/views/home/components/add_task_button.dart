@@ -15,7 +15,7 @@ GestureDetector AddTaskButton() {
         width: 80,
         height: 80,
         decoration: BoxDecoration(
-          color: AppColors.primaryColor,
+          color: Colors.amber,
           borderRadius: BorderRadius.circular(40)
         ),
         child:  Center(

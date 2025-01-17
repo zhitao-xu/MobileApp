@@ -35,6 +35,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+ # bloc
+  flutter_bloc: ^9.0.0
+
   # Database
   hive: ^2.2.3
   hive_flutter: ^1.1.0
@@ -64,6 +67,7 @@ dependencies:
   flutter_cupertino_date_picker_fork: ^1.0.7
 
 dev_dependencies:
+  bloc_test: ^10.0.0
   flutter_test:
     sdk: flutter
   build_runner: ^2.4.14

@@ -11,7 +11,7 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      child: Icon(CupertinoIcons.calendar),
+      child: Center(child: Icon(CupertinoIcons.calendar)),
     );
   }
 }

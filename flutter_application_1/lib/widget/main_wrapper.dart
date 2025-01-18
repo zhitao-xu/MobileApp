@@ -14,20 +14,7 @@ class MainWrapper extends StatefulWidget {
 }
 
 class _MainWrapperState extends State<MainWrapper> {
-  // controller for the page view
-  late PageController _pageController;
-  
-  @override
-  void initState() {
-    _pageController = PageController();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
+  int _currentIndex = 0;
 
   // Top Level Pages
   final List<Widget> _topLevPages = const [
@@ -53,17 +40,24 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   void onPageChanged(int page) {
+    setState(() {
+      _currentIndex = page;
+    });
     BlocProvider.of<BottomNav>(context).changeSelectedIndex(page);
   }
 
   // Body
-  PageView _mainWrapperBody(){
-    return PageView(
-      onPageChanged: (int page) => onPageChanged(page),
-      controller: _pageController,
-      children: _topLevPages,
-    );
-  }
+  IndexedStack _mainWrapperBody(){
+  return IndexedStack(
+    index: _currentIndex,
+    children: _topLevPages.map((page) {
+      return AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: page,
+      );
+    }).toList(),
+  );
+}
 
   // App Bar
   AppBar _mainWrapperAppBar() {
@@ -88,15 +82,8 @@ class _MainWrapperState extends State<MainWrapper> {
       return GestureDetector(
         onTap: (){
           // change index of selected page
-          BlocProvider.of<BottomNav>(context).changeSelectedIndex(page);
+          onPageChanged(page);
           log("Page changed to $page => $label");
-
-          _pageController.animateToPage(
-            page,
-            duration: const Duration(milliseconds: 10),
-            curve: Curves.fastLinearToSlowEaseIn,
-          );
-
         },
         child: Container(
           color: Colors.transparent,

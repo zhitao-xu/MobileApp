@@ -11,7 +11,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      child: Icon(CupertinoIcons.home),
+      child: Center(child: Icon(CupertinoIcons.home)),
     );
   }
 }

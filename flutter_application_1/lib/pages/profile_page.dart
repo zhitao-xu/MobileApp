@@ -11,7 +11,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      child: Icon(CupertinoIcons.profile_circled),
+      child: Center(child: Icon(CupertinoIcons.profile_circled)),
     );
   }
 }

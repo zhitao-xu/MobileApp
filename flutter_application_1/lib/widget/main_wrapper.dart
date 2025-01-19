@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/bloc/bottom_nav.dart';
@@ -20,20 +18,19 @@ class _MainWrapperState extends State<MainWrapper> {
   final List<Widget> _topLevPages = const [
     HomePage(),
     CalendarPage(),
-    ProfilePage(),
+    AnalyticsPage(),
   ];
   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.deepPurple,
-      appBar: _mainWrapperAppBar(),
       bottomNavigationBar: _mainWrapperBottomNavBar(context),
-      floatingActionButton: SizedBox(
-        width: 70,
-        height: 70,
-        child: _mainWrapperFloatingActionButton()
-      ),
+      floatingActionButton: _currentIndex == 0 ?  SizedBox(
+          width: 70,
+          height: 70,
+          child: _mainWrapperFloatingActionButton()
+        ) : null,
 
       body: _mainWrapperBody(),
     );
@@ -59,7 +56,7 @@ class _MainWrapperState extends State<MainWrapper> {
   );
 }
 
-  // App Bar
+  /* App Bar
   AppBar _mainWrapperAppBar() {
     return AppBar(
       title: const Text('DoTo App'),
@@ -68,6 +65,7 @@ class _MainWrapperState extends State<MainWrapper> {
       elevation: 0,
     );
   }
+  */
 
   // Single item in Bottom Navigation Bar 
   Widget _bottomAppBarItem(
@@ -83,7 +81,7 @@ class _MainWrapperState extends State<MainWrapper> {
         onTap: (){
           // change index of selected page
           onPageChanged(page);
-          log("Page changed to $page => $label");
+          print("Page changed to $page => $label");
         },
         child: Container(
           color: Colors.transparent,
@@ -136,9 +134,9 @@ class _MainWrapperState extends State<MainWrapper> {
           Expanded(
             child:_bottomAppBarItem(
               context, 
-              icon: CupertinoIcons.home, 
+              icon: CupertinoIcons.today, 
               page: 0, 
-              label: "Home"
+              label: "Today"
             ),
           ),
           Expanded(
@@ -152,9 +150,9 @@ class _MainWrapperState extends State<MainWrapper> {
           Expanded(
             child: _bottomAppBarItem(
               context, 
-              icon: CupertinoIcons.profile_circled, 
+              icon: CupertinoIcons.chart_bar_fill, 
               page: 2, 
-              label: "Profile"
+              label: "Analytics"
             ),
           ),
         ],
@@ -166,7 +164,7 @@ class _MainWrapperState extends State<MainWrapper> {
     return FloatingActionButton(
       onPressed: (){
         // TODO: Add new task
-        log("Add new task Buttton pressed");
+        print("Add new task Buttton pressed");
       },
 
       shape: RoundedRectangleBorder(

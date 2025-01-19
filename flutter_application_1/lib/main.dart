@@ -4,7 +4,10 @@ import 'package:flutter_application_1/bloc/bottom_nav.dart';
 import 'package:flutter_application_1/widget/main_wrapper.dart';
 
 
-void main() => runApp(const MyApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -13,7 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'DoTo',
+      title: 'Today',
       home: BlocProvider(
         create: (context) => BottomNav(),
         child: const MainWrapper(),

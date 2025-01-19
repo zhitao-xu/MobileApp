@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/widget/custom_app_bar.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class AnalyticsPage extends StatefulWidget {
+  const AnalyticsPage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<AnalyticsPage> createState() => _AnalyticsPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _AnalyticsPageState extends State<AnalyticsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,7 +17,7 @@ class _HomePageState extends State<HomePage> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(300),
         child: CustomAppBar(
-          title: const Text('Today'),
+          title: const Text('Analytics'),
         ),
       ),
     );

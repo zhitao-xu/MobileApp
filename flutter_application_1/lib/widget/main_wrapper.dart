@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/bloc/bottom_nav.dart';
 import 'package:flutter_application_1/pages/pages.dart';
+import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MainWrapper extends StatefulWidget {
@@ -24,7 +25,7 @@ class _MainWrapperState extends State<MainWrapper> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.deepPurple,
+      backgroundColor: white,
       bottomNavigationBar: _mainWrapperBottomNavBar(context),
       floatingActionButton: _currentIndex == 0 ?  SizedBox(
           width: 70,
@@ -84,7 +85,7 @@ class _MainWrapperState extends State<MainWrapper> {
           print("Page changed to $page => $label");
         },
         child: Container(
-          color: Colors.transparent,
+          color: transparent,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -99,8 +100,8 @@ class _MainWrapperState extends State<MainWrapper> {
                   */
                   icon,
                 color : currentIndex == page 
-                  ? Colors.amber 
-                  : Colors.grey,
+                  ? amber 
+                  : white,
                 size: 26,
               ),
               const SizedBox(
@@ -110,8 +111,8 @@ class _MainWrapperState extends State<MainWrapper> {
                 label,
                 style: TextStyle(
                   color: currentIndex == page 
-                    ? Colors.amber 
-                    : Colors.grey,
+                    ? amber 
+                    : white,
                   fontSize: 13,
                   fontWeight: currentIndex == page
                     ? FontWeight.w600
@@ -127,7 +128,7 @@ class _MainWrapperState extends State<MainWrapper> {
 
   BottomAppBar _mainWrapperBottomNavBar(BuildContext context){
     return BottomAppBar(
-      color: Colors.black,
+      color: lightBlue,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -171,10 +172,10 @@ class _MainWrapperState extends State<MainWrapper> {
         borderRadius: BorderRadius.circular(50),
       ),
       elevation: 10,
-      backgroundColor: Colors.amber,
+      backgroundColor: amber,
       child: const Icon(
         CupertinoIcons.add,
-        color: Colors.white,
+        color: white,
         size: 40, 
       ),
     );

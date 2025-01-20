@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/settings_page.dart';
+import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_1/bloc/bottom_nav.dart';
 import 'package:flutter_application_1/widget/main_wrapper.dart';
@@ -17,9 +19,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Today',
+
+      theme: Themes.light,
+      themeMode: ThemeMode.light,
+
+
       home: BlocProvider(
         create: (context) => BottomNav(),
         child: const MainWrapper(),
+        //child: const SettingsPage()
       ),
     );
   }

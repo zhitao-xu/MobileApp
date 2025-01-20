@@ -1,7 +1,7 @@
-import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/utils/theme.dart';
 
 class CustomAppBar extends StatelessWidget {
   const CustomAppBar({
@@ -9,24 +9,24 @@ class CustomAppBar extends StatelessWidget {
     required this.title,  
   });
 
-  final Widget title;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        color: Colors.lightGreen,
+        color: lightBlue,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 40,
-            vertical: 25 / 2.5,
+            vertical: 25,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Setting Icon
               CircleAvatar(
-                backgroundColor: Colors.orange,
+                backgroundColor: white,
                 child: GestureDetector(
                   onTap: () {
                     // go to settings page
@@ -38,12 +38,20 @@ class CustomAppBar extends StatelessWidget {
                   ),
                 ),
               ),
-              title,
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: white,
+                ),
+              ),
               // Search Icon
               GestureDetector(
                 child: Icon(
                   CupertinoIcons.search,
                   size: 30,
+                  color: white,
                 ),
                 onTap: () {
                   // go to search page

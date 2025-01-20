@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_application_1/widget/custom_app_bar.dart';
 
 class AnalyticsPage extends StatefulWidget {
@@ -12,13 +13,17 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue,
+      backgroundColor: lightBlue,
 
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(300),
         child: CustomAppBar(
-          title: const Text('Analytics'),
+          title: 'Analytics',
         ),
+      ),
+
+      body: Container(
+        color: white,
       ),
     );
   }

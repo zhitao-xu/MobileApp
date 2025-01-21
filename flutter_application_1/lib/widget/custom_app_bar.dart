@@ -2,14 +2,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/utils/theme.dart';
+import 'package:intl/intl.dart';
 
 class CustomAppBar extends StatelessWidget {
   const CustomAppBar({
     super.key, 
     required this.title,  
+    required this.isHome,
   });
 
   final String title;
+  final bool isHome;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +21,7 @@ class CustomAppBar extends StatelessWidget {
         color: lightBlue,
         child: Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: 40,
+            horizontal: 30,
             vertical: 25,
           ),
           child: Row(
@@ -38,14 +41,7 @@ class CustomAppBar extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  color: white,
-                ),
-              ),
+              titleContent(title, isHome),
               // Search Icon
               GestureDetector(
                 child: Icon(
@@ -61,6 +57,29 @@ class CustomAppBar extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  RichText titleContent(String title, bool isHome) {
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        children: isHome ? [
+          TextSpan(
+            text: title,
+            style: titleStyle,
+          ),
+          TextSpan(
+            text:  DateFormat.yMMMMd().format(DateTime.now()),
+            style: subTitleStyle,
+          ),
+        ] : [
+          TextSpan(
+            text: title,
+            style: titleStyle,
+          ),
+        ],
       ),
     );
   }

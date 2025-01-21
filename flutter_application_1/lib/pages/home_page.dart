@@ -16,9 +16,10 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: lightBlue,
 
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(300),
+        preferredSize: const Size.fromHeight(100),
         child: CustomAppBar(
-          title: 'Today',
+          title: "Today\n",
+          isHome: true,
         ),
       ),
 

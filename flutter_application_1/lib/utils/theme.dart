@@ -18,3 +18,18 @@ class Themes{
     brightness: Brightness.dark,
   );
 }
+
+TextStyle get titleStyle{
+  return TextStyle(
+    fontSize: 25,
+    fontWeight: FontWeight.bold,
+    color: white,
+  );
+}
+
+TextStyle get subTitleStyle{
+  return TextStyle(
+    fontSize: 15,
+    color: white,
+  );
+}

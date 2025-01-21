@@ -16,9 +16,10 @@ class _CalendarPageState extends State<CalendarPage> {
       backgroundColor: lightBlue,
 
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(300),
+        preferredSize: const Size.fromHeight(100),
         child: CustomAppBar(
-          title: 'Calendar',
+          title: "Calendar\n",
+          isHome: false,
         ),
       ),
 

@@ -27,7 +27,7 @@ class _MainWrapperState extends State<MainWrapper> {
     return Scaffold(
       backgroundColor: white,
       bottomNavigationBar: _mainWrapperBottomNavBar(context),
-      floatingActionButton: _currentIndex == 0 ?  SizedBox(
+      floatingActionButton: (_currentIndex == 0 || _currentIndex == 1) ?  SizedBox(
           width: 70,
           height: 70,
           child: _mainWrapperFloatingActionButton()

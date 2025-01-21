@@ -16,9 +16,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       backgroundColor: lightBlue,
 
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(300),
+        preferredSize: const Size.fromHeight(100),
         child: CustomAppBar(
-          title: 'Analytics',
+          title: "Analitics\n",
+          isHome: false,
         ),
       ),
 

@@ -50,7 +50,7 @@ class CustomAppBar extends StatelessWidget {
               GestureDetector(
                 child: Icon(
                   CupertinoIcons.search,
-                  size: 30,
+                  size: 40,
                   color: white,
                 ),
                 onTap: () {

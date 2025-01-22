@@ -1,3 +1,31 @@
+class SubTask {
+  final String title;
+  bool isDone;
+
+  SubTask({required this.title, this.isDone = false});
+
+  SubTask copyWith({String? title, bool? isDone}) {
+    return SubTask(
+      title: title ?? this.title,
+      isDone: isDone ?? this.isDone,
+    );
+  }
+
+  factory SubTask.fromJson(Map<String, dynamic> json) {
+    return SubTask(
+      title: json['title'],
+      isDone: json['isDone'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'isDone': isDone,
+    };
+  }
+}
+
 class Todo {
   final String title;
   final String subtitle;
@@ -6,6 +34,7 @@ class Todo {
   String deadline;
   String remind;
   String date;
+  List<SubTask> subtasks;
 
   Todo({
     this.title = '',
@@ -15,6 +44,7 @@ class Todo {
     this.date = '',
     this.deadline = '',
     this.remind = '',
+    this.subtasks = const [],
   });
 
   Todo copyWith({
@@ -25,6 +55,7 @@ class Todo {
     String? date,
     String? deadline,
     String? remind,
+    List<SubTask>? subtasks,
   }) {
     return Todo(
       title: title ?? this.title,
@@ -34,6 +65,7 @@ class Todo {
       date: date ?? this.date,
       deadline: deadline ?? this.deadline,
       remind: remind ?? this.remind,
+      subtasks: subtasks ?? this.subtasks,
     );
   }
 
@@ -46,6 +78,10 @@ class Todo {
       date: json['date'],
       deadline: json['deadline'],
       remind: json['remind'],
+      subtasks: (json['subtasks'] as List<dynamic>?)
+          ?.map((e) => SubTask.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+          [],
     );
   }
 
@@ -58,6 +94,7 @@ class Todo {
       'date': date,
       'deadline': deadline,
       'remind': remind,
+      'subtasks': subtasks.map((e) => e.toJson()).toList(),
     };
   }
 }

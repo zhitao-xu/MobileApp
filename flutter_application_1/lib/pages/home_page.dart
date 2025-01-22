@@ -4,6 +4,7 @@ import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_application_1/widget/custom_app_bar.dart';
 import 'package:flutter_application_1/data/todo.dart';
 import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
+import 'package:flutter_application_1/pages/task_details.dart'; // Import TaskDetailsPage
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
@@ -162,6 +163,10 @@ class _HomePageState extends State<HomePage> {
                             },
                             items: const [
                               DropdownMenuItem(
+                                value: 'no reminder',
+                                child: Text('no reminder'),
+                              ),
+                              DropdownMenuItem(
                                 value: '5 minutes before',
                                 child: Text('5 minutes before'),
                               ),
@@ -276,8 +281,8 @@ class _HomePageState extends State<HomePage> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    ...todos.map(
-                            (todo) => buildTodoCard(todo, state.todos.indexOf(todo))),
+                    ...todos.map((todo) =>
+                        buildTodoCard(todo, state.todos.indexOf(todo))),
                   ],
                   if (completedTodos.isNotEmpty) ...[
                     const Padding(
@@ -288,8 +293,8 @@ class _HomePageState extends State<HomePage> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    ...completedTodos.map(
-                            (todo) => buildTodoCard(todo, state.todos.indexOf(todo))),
+                    ...completedTodos.map((todo) =>
+                        buildTodoCard(todo, state.todos.indexOf(todo))),
                   ],
                 ],
               );
@@ -336,6 +341,14 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         child: ListTile(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskDetailsPage(taskIndex: originalIndex),
+              ),
+            );
+          },
           title: Text(
             todo.title,
             style: const TextStyle(

@@ -12,7 +12,10 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
     on<AddTodo>(_onAddTodo);
     on<RemoveTodo>(_onRemoveTodo);
     on<AlterTodo>(_onAlterTodo);
+    on<AddSubTask>(_onAddSubTask); // Registering AddSubTask
+    on<CompleteSubTask>(_onCompleteSubTask); // Registering CompleteSubTask
   }
+
 
   void _onStarted(
       TodoStarted event,
@@ -105,6 +108,45 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
           )
       );
     }
+  }
+
+  void _onAddSubTask(
+      AddSubTask event,
+      Emitter<TodoState> emit,
+      ) {
+    final updatedTodos = List<Todo>.from(state.todos);
+    final updatedTodo = updatedTodos[event.todoIndex].copyWith(
+      subtasks: List<SubTask>.from(updatedTodos[event.todoIndex].subtasks)
+        ..add(event.subTask),
+    );
+    updatedTodos[event.todoIndex] = updatedTodo;
+
+    emit(state.copyWith(todos: updatedTodos));
+  }
+
+  void _onCompleteSubTask(
+      CompleteSubTask event,
+      Emitter<TodoState> emit,
+      ) {
+    final updatedTodos = List<Todo>.from(state.todos);
+    final updatedSubTasks = List<SubTask>.from(updatedTodos[event.todoIndex].subtasks);
+
+    if (event.subTaskIndex > 0 && !updatedSubTasks[event.subTaskIndex - 1].isDone) {
+      return; // Subtask dependency not satisfied
+    }
+
+    updatedSubTasks[event.subTaskIndex] =
+        updatedSubTasks[event.subTaskIndex].copyWith(isDone: true);
+
+    final allSubTasksCompleted = updatedSubTasks.every((subTask) => subTask.isDone);
+
+    final updatedTodo = updatedTodos[event.todoIndex].copyWith(
+      subtasks: updatedSubTasks,
+      isDone: allSubTasksCompleted,
+    );
+    updatedTodos[event.todoIndex] = updatedTodo;
+
+    emit(state.copyWith(todos: updatedTodos));
   }
 
   @override

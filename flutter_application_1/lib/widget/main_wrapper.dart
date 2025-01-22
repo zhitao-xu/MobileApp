@@ -32,7 +32,7 @@ class _MainWrapperState extends State<MainWrapper> {
           height: 70,
           child: _mainWrapperFloatingActionButton()
         ) : null,
-
+      
       body: _mainWrapperBody(),
     );
   }
@@ -161,6 +161,7 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
+  /*
   FloatingActionButton _mainWrapperFloatingActionButton(){
     return FloatingActionButton(
       onPressed: (){
@@ -180,4 +181,5 @@ class _MainWrapperState extends State<MainWrapper> {
       ),
     );
   }
+  */
 }

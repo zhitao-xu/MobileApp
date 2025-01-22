@@ -5,6 +5,7 @@ import 'package:flutter_application_1/widget/custom_app_bar.dart';
 import 'package:flutter_application_1/data/todo.dart';
 import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,21 +16,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   addTodo(Todo todo) {
-    context.read<TodoBloc>().add(
-      AddTodo(todo),
-    );
+    context.read<TodoBloc>().add(AddTodo(todo));
   }
 
   removeTodo(Todo todo) {
-    context.read<TodoBloc>().add(
-      RemoveTodo(todo),
-    );
+    context.read<TodoBloc>().add(RemoveTodo(todo));
   }
 
   alertTodo(int index) {
-    context.read<TodoBloc>().add(
-      AlterTodo(index),
-    );
+    context.read<TodoBloc>().add(AlterTodo(index));
   }
 
   @override
@@ -41,88 +36,161 @@ class _HomePageState extends State<HomePage> {
           showDialog(
             context: context,
             builder: (context) {
-              TextEditingController controller1 = TextEditingController();
-              TextEditingController controller2 = TextEditingController();
+              TextEditingController titleController = TextEditingController();
+              TextEditingController descriptionController = TextEditingController();
               String selectedPriority = 'low';
+              String selectedReminder = '5 minutes before';
+              DateTime? selectedDeadline;
 
               return StatefulBuilder(
                 builder: (context, setState) {
                   return AlertDialog(
                     title: const Text('Add a Task'),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextField(
-                          controller: controller1,
-                          cursorColor: Theme.of(context).colorScheme.secondary,
-                          decoration: InputDecoration(
-                            hintText: 'Task Title...',
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.secondary,
+                    content: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextField(
+                            controller: titleController,
+                            cursorColor: Theme.of(context).colorScheme.secondary,
+                            decoration: InputDecoration(
+                              hintText: 'Task Title...',
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.secondary,
+                                ),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(color: Colors.grey),
                               ),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.grey),
-                            ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: controller2,
-                          cursorColor: Theme.of(context).colorScheme.secondary,
-                          decoration: InputDecoration(
-                            hintText: 'Task Description...',
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.secondary,
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: descriptionController,
+                            cursorColor: Theme.of(context).colorScheme.secondary,
+                            decoration: InputDecoration(
+                              hintText: 'Task Description...',
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.secondary,
+                                ),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(color: Colors.grey),
                               ),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.grey),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime.now(),
+                                      lastDate: DateTime(2100),
+                                    );
+
+                                    if (date != null) {
+                                      final time = await showTimePicker(
+                                        context: context,
+                                        initialTime: TimeOfDay.now(),
+                                      );
+
+                                      if (time != null) {
+                                        setState(() {
+                                          selectedDeadline = DateTime(
+                                            date.year,
+                                            date.month,
+                                            date.day,
+                                            time.hour,
+                                            time.minute,
+                                          );
+                                        });
+                                      }
+                                    }
+                                  },
+                                  child: Text(selectedDeadline == null
+                                      ? 'Select Deadline'
+                                      : DateFormat('yyyy-MM-dd HH:mm').format(selectedDeadline!)),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          DropdownButtonFormField<String>(
+                            value: selectedPriority,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedPriority = value!;
+                              });
+                            },
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'high',
+                                child: Text('High Priority'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'medium',
+                                child: Text('Medium Priority'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'low',
+                                child: Text('Low Priority'),
+                              ),
+                            ],
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        DropdownButtonFormField<String>(
-                          value: selectedPriority,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedPriority = value!;
-                            });
-                          },
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'high',
-                              child: Text('High Priority'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'medium',
-                              child: Text('Medium Priority'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'low',
-                              child: Text('Low Priority'),
-                            ),
-                          ],
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                          const SizedBox(height: 10),
+                          DropdownButtonFormField<String>(
+                            value: selectedReminder,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedReminder = value!;
+                              });
+                            },
+                            items: const [
+                              DropdownMenuItem(
+                                value: '5 minutes before',
+                                child: Text('5 minutes before'),
+                              ),
+                              DropdownMenuItem(
+                                value: '30 minutes before',
+                                child: Text('30 minutes before'),
+                              ),
+                              DropdownMenuItem(
+                                value: '1 hour before',
+                                child: Text('1 hour before'),
+                              ),
+                            ],
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     actions: [
                       Padding(
                         padding: const EdgeInsets.all(15.0),
                         child: TextButton(
                           onPressed: () {
-                            if (controller1.text.trim().isEmpty || controller2.text.trim().isEmpty) {
+                            if (titleController.text.trim().isEmpty ||
+                                descriptionController.text.trim().isEmpty ||
+                                selectedDeadline == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('Please fill in all fields')),
                               );
@@ -130,14 +198,16 @@ class _HomePageState extends State<HomePage> {
                             }
                             addTodo(
                               Todo(
-                                title: controller1.text.trim(),
-                                subtitle: controller2.text.trim(),
+                                title: titleController.text.trim(),
+                                subtitle: descriptionController.text.trim(),
                                 priority: selectedPriority,
+                                deadline: DateFormat('yyyy-MM-dd HH:mm').format(selectedDeadline!),
+                                remind: selectedReminder,
                                 date: DateTime.now().toString(),
                               ),
                             );
-                            controller1.text = '';
-                            controller2.text = '';
+                            titleController.text = '';
+                            descriptionController.text = '';
                             Navigator.pop(context);
                           },
                           style: TextButton.styleFrom(
@@ -164,7 +234,6 @@ class _HomePageState extends State<HomePage> {
               );
             },
           );
-
         },
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: const Icon(
@@ -203,20 +272,24 @@ class _HomePageState extends State<HomePage> {
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
                         'Pending Tasks',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    ...todos.map((todo) => buildTodoCard(todo, state.todos.indexOf(todo))),
+                    ...todos.map(
+                            (todo) => buildTodoCard(todo, state.todos.indexOf(todo))),
                   ],
                   if (completedTodos.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
                         'Completed Tasks',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    ...completedTodos.map((todo) => buildTodoCard(todo, state.todos.indexOf(todo))),
+                    ...completedTodos.map(
+                            (todo) => buildTodoCard(todo, state.todos.indexOf(todo))),
                   ],
                 ],
               );
@@ -232,7 +305,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget buildTodoCard(Todo todo, int originalIndex) {
-    // Adjust colors based on priority and completion status
     final isCompleted = todo.isDone;
 
     final backgroundColor = isCompleted
@@ -242,9 +314,6 @@ class _HomePageState extends State<HomePage> {
         : todo.priority == 'medium'
         ? Colors.orange[200]
         : Colors.white;
-
-
-    final textColor = Colors.black; // Ensuring consistent text visibility
 
     return Card(
       color: backgroundColor,
@@ -269,7 +338,7 @@ class _HomePageState extends State<HomePage> {
         child: ListTile(
           title: Text(
             todo.title,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -280,9 +349,24 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 todo.subtitle,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.black,
                   fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Deadline: ${todo.deadline}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+              Text(
+                'Remind: ${todo.remind}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[700],
                 ),
               ),
               const SizedBox(height: 4),
@@ -290,7 +374,7 @@ class _HomePageState extends State<HomePage> {
                 'Created: ${todo.date}',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[700], // Dimmer text for the date
+                  color: Colors.grey[700],
                 ),
               ),
             ],
@@ -304,7 +388,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-
-
 }

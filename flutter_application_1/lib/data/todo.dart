@@ -3,6 +3,8 @@ class Todo {
   final String subtitle;
   bool isDone;
   String priority;
+  String deadline;
+  String remind;
   String date;
 
   Todo({
@@ -10,7 +12,9 @@ class Todo {
     this.subtitle = '',
     this.isDone = false,
     this.priority = '',
-    this.date = ''
+    this.date = '',
+    this.deadline = '',
+    this.remind = '',
   });
 
   Todo copyWith({
@@ -19,6 +23,8 @@ class Todo {
     bool? isDone,
     String? priority,
     String? date,
+    String? deadline,
+    String? remind,
   }) {
     return Todo(
       title: title ?? this.title,
@@ -26,16 +32,20 @@ class Todo {
       isDone: isDone ?? this.isDone,
       priority: priority ?? this.priority,
       date: date ?? this.date,
+      deadline: deadline ?? this.deadline,
+      remind: remind ?? this.remind,
     );
   }
 
   factory Todo.fromJson(Map<String, dynamic> json) {
     return Todo(
-        title: json['title'],
-        subtitle: json['subtitle'],
-        isDone: json['isDone'],
-        priority: json['priority'],
-        date: json['date'],
+      title: json['title'],
+      subtitle: json['subtitle'],
+      isDone: json['isDone'],
+      priority: json['priority'],
+      date: json['date'],
+      deadline: json['deadline'],
+      remind: json['remind'],
     );
   }
 
@@ -46,17 +56,8 @@ class Todo {
       'isDone': isDone,
       'priority': priority,
       'date': date,
+      'deadline': deadline,
+      'remind': remind,
     };
-  }
-
-  @override
-  String toString() {
-    return '''Todo: {
-			title: $title\n
-			subtitle: $subtitle\n
-			isDone: $isDone\n
-			priority: $priority\n
-			date: $date\n
-		}''';
   }
 }

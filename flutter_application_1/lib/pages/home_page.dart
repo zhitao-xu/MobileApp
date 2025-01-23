@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
               TextEditingController descriptionController = TextEditingController();
               String selectedPriority = 'low';
               String selectedReminder = '5 minutes before';
-              DateTime? selectedDeadline;
+              DateTime selectedDeadline = DateTime.now().add(const Duration(hours: 2)); // Default to today
 
               return StatefulBuilder(
                 builder: (context, setState) {
@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
                             controller: descriptionController,
                             cursorColor: Theme.of(context).colorScheme.secondary,
                             decoration: InputDecoration(
-                              hintText: 'Task Description...',
+                              hintText: 'Task Description (optional)...',
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
                                 borderSide: BorderSide(
@@ -85,6 +85,7 @@ class _HomePageState extends State<HomePage> {
                                 borderSide: const BorderSide(color: Colors.grey),
                               ),
                             ),
+                            maxLines: null, // Allow multi-line input
                           ),
                           const SizedBox(height: 10),
                           Row(
@@ -118,9 +119,8 @@ class _HomePageState extends State<HomePage> {
                                       }
                                     }
                                   },
-                                  child: Text(selectedDeadline == null
-                                      ? 'Select Deadline'
-                                      : DateFormat('yyyy-MM-dd HH:mm').format(selectedDeadline!)),
+                                  child: Text(DateFormat('yyyy-MM-dd HH:mm')
+                                      .format(selectedDeadline)),
                                 ),
                               ),
                             ],
@@ -193,11 +193,9 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.all(15.0),
                         child: TextButton(
                           onPressed: () {
-                            if (titleController.text.trim().isEmpty ||
-                                descriptionController.text.trim().isEmpty ||
-                                selectedDeadline == null) {
+                            if (titleController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Please fill in all fields')),
+                                SnackBar(content: Text('Please fill in the title')),
                               );
                               return;
                             }
@@ -206,7 +204,7 @@ class _HomePageState extends State<HomePage> {
                                 title: titleController.text.trim(),
                                 subtitle: descriptionController.text.trim(),
                                 priority: selectedPriority,
-                                deadline: DateFormat('yyyy-MM-dd HH:mm').format(selectedDeadline!),
+                                deadline: DateFormat('yyyy-MM-dd HH:mm').format(selectedDeadline),
                                 remind: selectedReminder,
                                 date: DateTime.now().toString(),
                               ),
@@ -321,85 +319,93 @@ class _HomePageState extends State<HomePage> {
         ? Colors.orange[200]
         : Colors.white;
 
-    return Card(
-      color: backgroundColor,
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Slidable(
-        key: ValueKey(todo.title),
-        startActionPane: ActionPane(
-          motion: const ScrollMotion(),
-          children: [
-            SlidableAction(
-              onPressed: (_) => removeTodo(todo),
-              backgroundColor: const Color(0xFFFE4A49),
-              foregroundColor: Colors.white,
-              icon: Icons.delete,
-              label: 'Delete',
-            ),
-          ],
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 0),
+        color: backgroundColor,
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: ListTile(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskDetailsPage(taskIndex: originalIndex),
-              ),
-            );
-          },
-          title: Text(
-            todo.title,
-            style: const TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: Slidable(
+          key: ValueKey(todo.title),
+          startActionPane: ActionPane(
+            motion: const ScrollMotion(),
             children: [
-              Text(
-                todo.subtitle,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Deadline: ${todo.deadline}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[700],
-                ),
-              ),
-              Text(
-                'Remind: ${todo.remind}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[700],
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Created: ${todo.date}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[700],
-                ),
+              SlidableAction(
+                onPressed: (_) => removeTodo(todo),
+                backgroundColor: const Color(0xFFFE4A49),
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
               ),
             ],
           ),
-          trailing: Checkbox(
-            value: todo.isDone,
-            activeColor: Theme.of(context).colorScheme.secondary,
-            onChanged: (value) => alertTodo(originalIndex),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0), // Add padding for visual spacing
+            child: ListTile(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TaskDetailsPage(taskIndex: originalIndex),
+                  ),
+                );
+              },
+              title: Text(
+                todo.title,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    todo.subtitle,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Deadline: ${todo.deadline}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  Text(
+                    'Remind: ${todo.remind}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Created: ${todo.date}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
+              trailing: Checkbox(
+                value: todo.isDone,
+                activeColor: Theme.of(context).colorScheme.secondary,
+                onChanged: (value) => alertTodo(originalIndex),
+              ),
+            ),
           ),
         ),
       ),
     );
   }
+
 }

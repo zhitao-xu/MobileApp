@@ -9,7 +9,7 @@ import '../data/todo.dart';
 class TaskDetailsPage extends StatelessWidget {
   final int taskIndex;
 
-  const TaskDetailsPage({Key? key, required this.taskIndex}) : super(key: key);
+  const TaskDetailsPage({super.key, required this.taskIndex});
 
   @override
   Widget build(BuildContext context) {

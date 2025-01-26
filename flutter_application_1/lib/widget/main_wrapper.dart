@@ -28,13 +28,6 @@ class _MainWrapperState extends State<MainWrapper> {
     return Scaffold(
       backgroundColor: white,
       bottomNavigationBar: _mainWrapperBottomNavBar(context),
-      /*
-      floatingActionButton: (_currentIndex == 0 || _currentIndex == 1) ?  SizedBox(
-          width: 70,
-          height: 70,
-          child: _mainWrapperFloatingActionButton()
-        ) : null,
-      */
       body: _mainWrapperBody(),
     );
   }
@@ -59,16 +52,6 @@ class _MainWrapperState extends State<MainWrapper> {
   );
 }
 
-  /* App Bar
-  AppBar _mainWrapperAppBar() {
-    return AppBar(
-      title: const Text('DoTo App'),
-      centerTitle: true,
-      backgroundColor: Colors.green,
-      elevation: 0,
-    );
-  }
-  */
 
   // Single item in Bottom Navigation Bar 
   Widget _bottomAppBarItem(
@@ -160,27 +143,6 @@ class _MainWrapperState extends State<MainWrapper> {
           ),
         ],
       )
-    );
-  }
-
-  
-  FloatingActionButton _mainWrapperFloatingActionButton(){
-    return FloatingActionButton(
-      onPressed: (){
-        // TODO: Add new task
-        print("Add new task Buttton pressed");
-      },
-
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(50),
-      ),
-      elevation: 10,
-      backgroundColor: amber,
-      child: const Icon(
-        CupertinoIcons.add,
-        color: white,
-        size: 40, 
-      ),
     );
   }
 }

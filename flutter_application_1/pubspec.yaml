@@ -64,11 +64,9 @@ dependencies:
   # Toast
   ftoast: ^2.0.0
 
-  # Slider
-  flutter_slider_drawer: ^3.0.1
-
   # Datae Picker
   flutter_cupertino_date_picker_fork: ^1.0.7
+  table_calendar: ^3.2.0
 
   hydrated_bloc: ^10.0.0
   path_provider: ^2.0.0

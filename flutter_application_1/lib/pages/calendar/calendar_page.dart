@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_application_1/widget/custom_app_bar.dart';
 
+
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
 
@@ -10,6 +11,7 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +27,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
       body: Container(
         color: white,
-      )
+     ),
     );
   }
 }

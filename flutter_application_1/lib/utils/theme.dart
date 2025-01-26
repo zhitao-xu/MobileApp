@@ -6,6 +6,7 @@ const Color lightBlue = Colors.blue;
 const Color transparent = Colors.transparent;
 const Color white = Colors.white;
 const Color grey = Colors.grey;
+const Color black = Colors.black;
 
 class Themes{
   static final light = ThemeData(

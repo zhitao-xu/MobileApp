@@ -21,18 +21,20 @@ class _MainWrapperState extends State<MainWrapper> {
     CalendarPage(),
     AnalyticsPage(),
   ];
-  
+
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: white,
       bottomNavigationBar: _mainWrapperBottomNavBar(context),
+      /*
       floatingActionButton: (_currentIndex == 0 || _currentIndex == 1) ?  SizedBox(
           width: 70,
           height: 70,
           child: _mainWrapperFloatingActionButton()
         ) : null,
-      
+      */
       body: _mainWrapperBody(),
     );
   }
@@ -161,7 +163,7 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
-  /*
+  
   FloatingActionButton _mainWrapperFloatingActionButton(){
     return FloatingActionButton(
       onPressed: (){
@@ -181,5 +183,4 @@ class _MainWrapperState extends State<MainWrapper> {
       ),
     );
   }
-  */
 }

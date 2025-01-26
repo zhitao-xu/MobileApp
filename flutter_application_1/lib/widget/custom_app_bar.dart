@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/utils/theme.dart';
@@ -51,7 +50,8 @@ class CustomAppBar extends StatelessWidget {
                 ),
                 onTap: () {
                   // go to search page
-                  print('Search Icon Tapped');
+                  // print('Search Icon Tapped');
+                  
                 },
               )
             ],

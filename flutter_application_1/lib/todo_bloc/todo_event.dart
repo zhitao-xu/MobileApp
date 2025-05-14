@@ -39,6 +39,17 @@ class CompleteSubTask extends TodoEvent {
   List<Object?> get props => [todoIndex, subTaskIndex];
 }
 
+class UpdateSubTask extends TodoEvent {
+  final int todoIndex;
+  final int subTaskIndex;
+  final SubTask updatedSubTask;
+
+  const UpdateSubTask(this.todoIndex, this.subTaskIndex, this.updatedSubTask);
+
+  @override
+  List<Object?> get props => [todoIndex, subTaskIndex, updatedSubTask];
+}
+
 class RemoveTodo extends TodoEvent {
   final Todo todo;
 

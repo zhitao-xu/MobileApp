@@ -1,27 +1,63 @@
 class SubTask {
   final String title;
+  final String subtitle;
   bool isDone;
+  String priority;
+  String deadline;
+  String remind;
+  String date;
 
-  SubTask({required this.title, this.isDone = false});
+  SubTask({
+    required this.title,
+    this.subtitle = '',
+    this.isDone = false,
+    this.priority = '',
+    this.date = '',
+    this.deadline = '',
+    this.remind = '',
+  });
 
-  SubTask copyWith({String? title, bool? isDone}) {
+  SubTask copyWith({
+    String? title,
+    String? subtitle,
+    bool? isDone,
+    String? priority,
+    String? date,
+    String? deadline,
+    String? remind,
+  }) {
     return SubTask(
       title: title ?? this.title,
+      subtitle: subtitle ?? this.subtitle,
       isDone: isDone ?? this.isDone,
+      priority: priority ?? this.priority,
+      date: date ?? this.date,
+      deadline: deadline ?? this.deadline,
+      remind: remind ?? this.remind,
     );
   }
 
   factory SubTask.fromJson(Map<String, dynamic> json) {
     return SubTask(
       title: json['title'],
-      isDone: json['isDone'],
+      subtitle: json['subtitle'] ?? '',
+      isDone: json['isDone'] ?? false,
+      priority: json['priority'] ?? '',
+      date: json['date'] ?? '',
+      deadline: json['deadline'] ?? '',
+      remind: json['remind'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'title': title,
+      'subtitle': subtitle,
       'isDone': isDone,
+      'priority': priority,
+      'date': date,
+      'deadline': deadline,
+      'remind': remind,
     };
   }
 }

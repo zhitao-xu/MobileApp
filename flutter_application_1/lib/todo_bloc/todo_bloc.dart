@@ -14,7 +14,8 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
     on<AlterTodo>(_onAlterTodo);
     on<AddSubTask>(_onAddSubTask);
     on<CompleteSubTask>(_onCompleteSubTask);
-    on<UpdateSubTask>(_onUpdateSubTask); // Nuovo evento per aggiornare un subtask
+    on<UpdateSubTask>(_onUpdateSubTask);
+    on<UpdateTodo>(_onUpdateTodo);
   }
 
   void _onStarted(
@@ -234,5 +235,34 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
   @override
   Map<String, dynamic>? toJson(TodoState state) {
     return state.toJson();
+  }
+  
+  // Nuovo metodo per aggiornare un task
+  void _onUpdateTodo(
+      UpdateTodo event,
+      Emitter<TodoState> emit,
+      ) {
+    emit(
+        state.copyWith(
+            status: TodoStatus.loading
+        )
+    );
+    try {
+      final updatedTodos = List<Todo>.from(state.todos);
+      updatedTodos[event.index] = event.updatedTodo;
+      
+      emit(
+          state.copyWith(
+              todos: updatedTodos,
+              status: TodoStatus.success
+          )
+      );
+    } catch (e) {
+      emit(
+          state.copyWith(
+              status: TodoStatus.error
+          )
+      );
+    }
   }
 }

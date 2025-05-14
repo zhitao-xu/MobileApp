@@ -67,3 +67,13 @@ class AlterTodo extends TodoEvent {
   @override
   List<Object?> get props => [index];
 }
+
+class UpdateTodo extends TodoEvent {
+  final int index;
+  final Todo updatedTodo;
+
+  const UpdateTodo(this.index, this.updatedTodo);
+
+  @override
+  List<Object?> get props => [index, updatedTodo];
+}

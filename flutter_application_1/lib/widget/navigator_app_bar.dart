@@ -5,9 +5,11 @@ class NavigatorAppBar extends StatelessWidget {
   const NavigatorAppBar({
     super.key,
     required this.title,
+    this.widget,
   });
 
   final String title;
+  final Widget? widget;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +46,7 @@ class NavigatorAppBar extends StatelessWidget {
                 ),
               ),
               const Spacer(), // Ensures equal spacing on both sides of the title
+              widget ?? const SizedBox(),
             ],
           ),
         ),

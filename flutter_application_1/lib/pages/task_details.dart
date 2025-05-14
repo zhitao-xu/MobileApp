@@ -4,6 +4,8 @@ import 'package:flutter_application_1/widget/navigator_app_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../todo_bloc/todo_bloc.dart';
 import '../data/todo.dart';
+import 'subtask_details.dart';
+import 'edit_task_page.dart';
 
 
 class TaskDetailsPage extends StatelessWidget {
@@ -22,25 +24,30 @@ class TaskDetailsPage extends StatelessWidget {
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(300),
             child: NavigatorAppBar(
-              title: task.title
+              title: task.title,
+              widget: IconButton(
+                icon: const Icon(Icons.edit_note),
+                color: black,
+                iconSize: 30,
+                onPressed: () { // Navigate to edit task page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditTaskPage(taskIndex: taskIndex)
+                      ),
+                  );
+                },
+              ),
             ),
           ),
           body: Container(
             color: white,
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Task Details Section
-                  Text(
-                    'Details',
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
                   const SizedBox(height: 8),
                   Text(
                     task.subtitle,
@@ -49,11 +56,27 @@ class TaskDetailsPage extends StatelessWidget {
                       fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
+                  
+                  // Priority section
+                  if (task.priority.isNotEmpty) _buildInfoRow('Priority', task.priority),
+                  
+                  // Deadline section
+                  if (task.deadline.isNotEmpty) _buildInfoRow('Deadline', task.deadline),
+                  
+                  // Remind section
+                  if (task.remind.isNotEmpty) _buildInfoRow('Remind', task.remind),
+                  
+                  const SizedBox(height: 24),
             
                   // Subtasks Section
-                  Text(
+                  const Text(
                     'Subtasks',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Expanded(
@@ -71,7 +94,7 @@ class TaskDetailsPage extends StatelessWidget {
                                 );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
+                                  const SnackBar(
                                     content: Text(
                                         'Complete the previous subtasks first.'),
                                   ),
@@ -86,6 +109,24 @@ class TaskDetailsPage extends StatelessWidget {
                                   ? TextDecoration.lineThrough
                                   : TextDecoration.none,
                             ),
+                          ),
+                          subtitle: subTask.subtitle.isNotEmpty 
+                            ? Text(subTask.subtitle) 
+                            : null,
+                          trailing: IconButton(
+                            icon: const Icon(Icons.edit, size: 20),
+                            onPressed: () {
+                              // Navigate to edit subtask page
+                              Navigator.push(
+                                context, 
+                                MaterialPageRoute(
+                                  builder: (context) => SubtaskDetailsPage(
+                                    taskIndex: taskIndex,
+                                    subtaskIndex: index,
+                                  )
+                                )
+                              );
+                            },
                           ),
                         );
                       },
@@ -108,17 +149,51 @@ class TaskDetailsPage extends StatelessWidget {
     );
   }
 
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Text(
+            '$label: ',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showAddSubTaskDialog(BuildContext context) {
     final subTaskController = TextEditingController();
+    final subtitleController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Add Subtask'),
-          content: TextField(
-            controller: subTaskController,
-            decoration: const InputDecoration(hintText: 'Enter subtask title'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: subTaskController,
+                decoration: const InputDecoration(hintText: 'Enter subtask title'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: subtitleController,
+                decoration: const InputDecoration(hintText: 'Enter subtask description (optional)'),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -133,7 +208,10 @@ class TaskDetailsPage extends StatelessWidget {
                   context.read<TodoBloc>().add(
                     AddSubTask(
                       taskIndex,
-                      SubTask(title: subTaskController.text),
+                      SubTask(
+                        title: subTaskController.text,
+                        subtitle: subtitleController.text,
+                      ),
                     ),
                   );
                   Navigator.of(dialogContext).pop();

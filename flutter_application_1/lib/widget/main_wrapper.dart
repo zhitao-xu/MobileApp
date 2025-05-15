@@ -120,9 +120,9 @@ class _MainWrapperState extends State<MainWrapper> {
           Expanded(
             child:_bottomAppBarItem(
               context, 
-              icon: CupertinoIcons.today, 
+              icon: CupertinoIcons.list_bullet, 
               page: 0, 
-              label: "Today"
+              label: "To-do List"
             ),
           ),
           Expanded(

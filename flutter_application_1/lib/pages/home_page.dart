@@ -33,7 +33,7 @@ class _HomePageState extends State<HomePage> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(100),
         child: CustomAppBar(
-          title: "Today\n",
+          title: "To-do List\n",
           isHome: true,
         ),
       ),

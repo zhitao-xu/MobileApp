@@ -77,11 +77,11 @@ class MainWrapperBottomNavBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Expanded(
-            child: _bottomAppBarItem(
-              context,
-              icon: CupertinoIcons.today,
-              page: 0,
-              label: "Today",
+            child:_bottomAppBarItem(
+              context, 
+              icon: CupertinoIcons.list_bullet, 
+              page: 0, 
+              label: "To-do List",
               currentIndex: currentIndex,
               onPageChanged: onPageChanged,
             ),

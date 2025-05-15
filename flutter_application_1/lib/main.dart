@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Today',
+        title: 'To-do list',
         theme: Themes.light,
         themeMode: ThemeMode.light,
         home: const MainWrapper(),

@@ -33,7 +33,7 @@ class _HomePageState extends State<HomePage> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(100),
         child: CustomAppBar(
-          title: "Today\n",
+          title: "To-do List\n",
           isHome: true,
         ),
       ),
@@ -62,19 +62,66 @@ class _HomePageState extends State<HomePage> {
         child: BlocBuilder<TodoBloc, TodoState>(
           builder: (context, state) {
             if (state.status == TodoStatus.success) {
+              // Filter pending tasks
               final todos = state.todos
-                  .where((todo) => !todo.isDone)
-                  .toList()
-                ..sort((a, b) {
-                  const priorityOrder = {'high': 0, 'medium': 1, 'low': 2};
-                  return priorityOrder[a.priority]!
-                      .compareTo(priorityOrder[b.priority]!);
-                });
+                .where((todo) => !todo.isDone)
+                .toList(); // Get a mutable list first
 
-              final completedTodos =
-              state.todos.where((todo) => todo.isDone).toList();
+              // --- SORT PENDING TASKS: Priority then Deadline ---
+              todos.sort((a, b) {
+                // 1. Compare by Priority (High > Medium > Low)
+                const priorityOrder = {'high': 0, 'medium': 1, 'low': 2};
+                final priorityCompare = priorityOrder[a.priority]!.compareTo(priorityOrder[b.priority]!);
 
+                // If priorities are different, return the priority comparison result
+                if (priorityCompare != 0) {
+                return priorityCompare;
+                } else {
+                // 2. If Priorities are the same, compare by Deadline (Earliest first)
+                try {
+                  // Attempt to parse the deadline strings into DateTime objects
+                  // IMPORTANT: This assumes todo.deadline is in a format DateTime.parse can handle (like ISO 8601: "YYYY-MM-DD")
+                  final deadlineA = DateTime.parse(a.deadline);
+                  final deadlineB = DateTime.parse(b.deadline);
+
+                  // Use DateTime.compareTo which sorts chronologically (earliest to latest)
+                  return deadlineA.compareTo(deadlineB);
+
+                } catch (e) {
+                  // Handle cases where the deadline string might not be a valid date format
+                  // For simplicity here, we'll print an error and treat unparseable
+                  // dates as equal for sorting (or you could put them at the end).
+                  print('Error parsing deadline for sorting: ${a.title} or ${b.title} - $e');
+                  // Fallback: If dates can't be parsed, consider them equal for sorting within this priority
+                  return 0;
+                }
+                }
+              });
+
+              // Filter completed tasks
+              final completedTodos = state.todos.where((todo) => todo.isDone).toList();
+
+              // --- SORT COMPLETED TASKS: Priority then Deadline (using the same logic) ---
+              completedTodos.sort((a, b) {
+                const priorityOrder = {'high': 0, 'medium': 1, 'low': 2};
+                final priorityCompare = priorityOrder[a.priority]!.compareTo(priorityOrder[b.priority]!);
+
+                if (priorityCompare != 0) {
+                return priorityCompare;
+                } else {
+                try {
+                  final deadlineA = DateTime.parse(a.deadline);
+                  final deadlineB = DateTime.parse(b.deadline);
+                  return deadlineA.compareTo(deadlineB);
+                } catch (e) {
+                  print('Error parsing deadline for sorting completed: ${a.title} or ${b.title} - $e');
+                  return 0;
+                }
+                }
+              });
               return ListView(
+                // Added padding to the bottom to move the last task out of the way of the add task floating action button
+                padding: const EdgeInsets.only(bottom: 85.0), // Adjust this value as needed
                 children: [
                   if (todos.isNotEmpty) ...[
                     const Padding(
@@ -136,13 +183,21 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Slidable(
-          key: ValueKey(todo.title),
+          key: ValueKey(todo.title + todo.date), // Using title + date for a more unique key
           startActionPane: ActionPane(
             motion: const ScrollMotion(),
             children: [
               CustomSlidableAction(
                 onPressed: (_) => removeTodo(todo),
                 backgroundColor: const Color(0xFFFE4A49),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.delete, color: Colors.white),
+                    SizedBox(height: 4),
+                    Text('Delete', style: TextStyle(color: Colors.white)),
+                  ],
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
@@ -173,6 +228,9 @@ class _HomePageState extends State<HomePage> {
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
+                // Added potential overflow handling for long titles
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
               ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,8 +241,13 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.black,
                       fontSize: 14,
                     ),
+                    // Added potential overflow handling for long subtitles
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    maxLines: 2, // Added maxLines to prevent unbounded height in list
                   ),
-                  const SizedBox(height: 4),
+                  // Keep the Deadline text
+                  const SizedBox(height: 4), // Keep spacing if deadline is shown
                   Text(
                     'Deadline: ${todo.deadline}',
                     style: TextStyle(
@@ -192,21 +255,7 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.grey[700],
                     ),
                   ),
-                  Text(
-                    'Remind: ${todo.remind}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Created: ${todo.date}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                    ),
-                  ),
+                  // Removed remind and created text as they were un-needed
                 ],
               ),
               trailing: Checkbox(
@@ -220,5 +269,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 }

@@ -27,7 +27,10 @@ class _MainWrapperState extends State<MainWrapper> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: white,
-      bottomNavigationBar: _mainWrapperBottomNavBar(context),
+      bottomNavigationBar: MainWrapperBottomNavBar(
+        currentIndex: _currentIndex,
+        onPageChanged: onPageChanged,
+      ),
       body: _mainWrapperBody(),
     );
   }
@@ -53,65 +56,21 @@ class _MainWrapperState extends State<MainWrapper> {
 }
 
 
-  // Single item in Bottom Navigation Bar 
-  Widget _bottomAppBarItem(
-    BuildContext context, {
-      required icon,
-      // required filledIcon,
-      required page,
-      required label,   
-    }){
-      int currentIndex = context.watch<BottomNav>().state;
+  // _bottomAppBarItem and _mainWrapperBottomNavBar removed; see MainWrapperBottomNavBar below.
+}
 
-      return GestureDetector(
-        onTap: (){
-          // change index of selected page
-          onPageChanged(page);
-          print("Page changed to $page => $label");
-        },
-        child: Container(
-          color: transparent,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(
-                height: 8,
-              ),
-              // Icons
-              Icon(
-                /*0 == page 
-                  ? filledIcon 
-                  : defaultIcon,
-                  */
-                  icon,
-                color : currentIndex == page 
-                  ? amber 
-                  : white,
-                size: 26,
-              ),
-              const SizedBox(
-                height: 3,
-              ),
-              Text(
-                label,
-                style: TextStyle(
-                  color: currentIndex == page 
-                    ? amber 
-                    : white,
-                  fontSize: 13,
-                  fontWeight: currentIndex == page
-                    ? FontWeight.w600
-                    : FontWeight.w400,
-                ),
-              ),
-            ],
-          )
-        )
+class MainWrapperBottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final Function(int) onPageChanged;
 
-      );
-    }
+  const MainWrapperBottomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onPageChanged,
+  });
 
-  BottomAppBar _mainWrapperBottomNavBar(BuildContext context){
+  @override
+  Widget build(BuildContext context) {
     return BottomAppBar(
       color: lightBlue,
       child: Row(
@@ -127,22 +86,67 @@ class _MainWrapperState extends State<MainWrapper> {
           ),
           Expanded(
             child: _bottomAppBarItem(
-                context, 
-                icon: CupertinoIcons.calendar, 
-                page: 1, 
-                label: "Calendar"
-              ),
+              context,
+              icon: CupertinoIcons.calendar,
+              page: 1,
+              label: "Calendar",
+              currentIndex: currentIndex,
+              onPageChanged: onPageChanged,
+            ),
           ),
           Expanded(
             child: _bottomAppBarItem(
-              context, 
-              icon: CupertinoIcons.chart_bar_fill, 
-              page: 2, 
-              label: "Analytics"
+              context,
+              icon: CupertinoIcons.chart_bar_fill,
+              page: 2,
+              label: "Analytics",
+              currentIndex: currentIndex,
+              onPageChanged: onPageChanged,
             ),
           ),
         ],
-      )
+      ),
+    );
+  }
+
+  Widget _bottomAppBarItem(
+    BuildContext context, {
+    required IconData icon,
+    required int page,
+    required String label,
+    required int currentIndex,
+    required Function(int) onPageChanged,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        onPageChanged(page);
+        print("Page changed to $page => $label");
+      },
+      child: Container(
+        color: transparent,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Icon(
+              icon,
+              color: currentIndex == page && currentIndex != -1 ? amber : white,
+              size: 26,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                color: currentIndex == page && currentIndex != -1 ? amber : white,
+                fontSize: 13,
+                fontWeight: currentIndex == page && currentIndex != -1
+                    ? FontWeight.w600
+                    : FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -7,6 +7,10 @@ const Color transparent = Colors.transparent;
 const Color white = Colors.white;
 const Color grey = Colors.grey;
 const Color black = Colors.black;
+const Color backgoundGrey = Color.fromARGB(255, 204, 203, 203);
+const Color red = Colors.red;
+const Color green = Colors.green;
+const Color blue = Colors.blue;
 
 class Themes{
   static final light = ThemeData(

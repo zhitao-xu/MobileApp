@@ -12,10 +12,11 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
     on<AddTodo>(_onAddTodo);
     on<RemoveTodo>(_onRemoveTodo);
     on<AlterTodo>(_onAlterTodo);
-    on<AddSubTask>(_onAddSubTask); // Registering AddSubTask
-    on<CompleteSubTask>(_onCompleteSubTask); // Registering CompleteSubTask
+    on<AddSubTask>(_onAddSubTask);
+    on<CompleteSubTask>(_onCompleteSubTask);
+    on<UpdateSubTask>(_onUpdateSubTask);
+    on<UpdateTodo>(_onUpdateTodo);
   }
-
 
   void _onStarted(
       TodoStarted event,
@@ -114,39 +115,116 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
       AddSubTask event,
       Emitter<TodoState> emit,
       ) {
-    final updatedTodos = List<Todo>.from(state.todos);
-    final updatedTodo = updatedTodos[event.todoIndex].copyWith(
-      subtasks: List<SubTask>.from(updatedTodos[event.todoIndex].subtasks)
-        ..add(event.subTask),
+    emit(
+        state.copyWith(
+            status: TodoStatus.loading
+        )
     );
-    updatedTodos[event.todoIndex] = updatedTodo;
+    try {
+      final updatedTodos = List<Todo>.from(state.todos);
+      final updatedTodo = updatedTodos[event.todoIndex].copyWith(
+        subtasks: List<SubTask>.from(updatedTodos[event.todoIndex].subtasks)
+          ..add(event.subTask),
+      );
+      updatedTodos[event.todoIndex] = updatedTodo;
 
-    emit(state.copyWith(todos: updatedTodos));
+      emit(
+          state.copyWith(
+              todos: updatedTodos,
+              status: TodoStatus.success
+          )
+      );
+    } catch (e) {
+      emit(
+          state.copyWith(
+              status: TodoStatus.error
+          )
+      );
+    }
   }
 
   void _onCompleteSubTask(
       CompleteSubTask event,
       Emitter<TodoState> emit,
       ) {
-    final updatedTodos = List<Todo>.from(state.todos);
-    final updatedSubTasks = List<SubTask>.from(updatedTodos[event.todoIndex].subtasks);
-
-    if (event.subTaskIndex > 0 && !updatedSubTasks[event.subTaskIndex - 1].isDone) {
-      return; // Subtask dependency not satisfied
-    }
-
-    updatedSubTasks[event.subTaskIndex] =
-        updatedSubTasks[event.subTaskIndex].copyWith(isDone: true);
-
-    final allSubTasksCompleted = updatedSubTasks.every((subTask) => subTask.isDone);
-
-    final updatedTodo = updatedTodos[event.todoIndex].copyWith(
-      subtasks: updatedSubTasks,
-      isDone: allSubTasksCompleted,
+    emit(
+        state.copyWith(
+            status: TodoStatus.loading
+        )
     );
-    updatedTodos[event.todoIndex] = updatedTodo;
+    try {
+      final updatedTodos = List<Todo>.from(state.todos);
+      final updatedSubTasks = List<SubTask>.from(updatedTodos[event.todoIndex].subtasks);
 
-    emit(state.copyWith(todos: updatedTodos));
+      // Verifica che i subtask precedenti siano completati
+      if (event.subTaskIndex > 0 && !updatedSubTasks[event.subTaskIndex - 1].isDone) {
+        emit(state.copyWith(status: TodoStatus.success));
+        return; // Subtask dependency not satisfied
+      }
+
+      // Aggiorna lo stato del subtask
+      updatedSubTasks[event.subTaskIndex] =
+          updatedSubTasks[event.subTaskIndex].copyWith(isDone: !updatedSubTasks[event.subTaskIndex].isDone);
+
+      // Verifica se tutti i subtask sono completati
+      final allSubTasksCompleted = updatedSubTasks.every((subTask) => subTask.isDone);
+
+      final updatedTodo = updatedTodos[event.todoIndex].copyWith(
+        subtasks: updatedSubTasks,
+        isDone: allSubTasksCompleted, // Imposta isDone del todo in base allo stato di tutti i subtask
+      );
+      updatedTodos[event.todoIndex] = updatedTodo;
+
+      emit(
+          state.copyWith(
+              todos: updatedTodos,
+              status: TodoStatus.success
+          )
+      );
+    } catch (e) {
+      emit(
+          state.copyWith(
+              status: TodoStatus.error
+          )
+      );
+    }
+  }
+
+  // Nuovo metodo per aggiornare i dettagli di un subtask (priorità, scadenza, ecc.)
+  void _onUpdateSubTask(
+      UpdateSubTask event,
+      Emitter<TodoState> emit,
+      ) {
+    emit(
+        state.copyWith(
+            status: TodoStatus.loading
+        )
+    );
+    try {
+      final updatedTodos = List<Todo>.from(state.todos);
+      final updatedSubTasks = List<SubTask>.from(updatedTodos[event.todoIndex].subtasks);
+
+      // Sostituisce il subtask con la versione aggiornata
+      updatedSubTasks[event.subTaskIndex] = event.updatedSubTask;
+
+      final updatedTodo = updatedTodos[event.todoIndex].copyWith(
+        subtasks: updatedSubTasks,
+      );
+      updatedTodos[event.todoIndex] = updatedTodo;
+
+      emit(
+          state.copyWith(
+              todos: updatedTodos,
+              status: TodoStatus.success
+          )
+      );
+    } catch (e) {
+      emit(
+          state.copyWith(
+              status: TodoStatus.error
+          )
+      );
+    }
   }
 
   @override
@@ -157,5 +235,34 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
   @override
   Map<String, dynamic>? toJson(TodoState state) {
     return state.toJson();
+  }
+  
+  // Nuovo metodo per aggiornare un task
+  void _onUpdateTodo(
+      UpdateTodo event,
+      Emitter<TodoState> emit,
+      ) {
+    emit(
+        state.copyWith(
+            status: TodoStatus.loading
+        )
+    );
+    try {
+      final updatedTodos = List<Todo>.from(state.todos);
+      updatedTodos[event.index] = event.updatedTodo;
+      
+      emit(
+          state.copyWith(
+              todos: updatedTodos,
+              status: TodoStatus.success
+          )
+      );
+    } catch (e) {
+      emit(
+          state.copyWith(
+              status: TodoStatus.error
+          )
+      );
+    }
   }
 }

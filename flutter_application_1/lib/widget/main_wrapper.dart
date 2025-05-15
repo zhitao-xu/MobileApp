@@ -81,7 +81,9 @@ class MainWrapperBottomNavBar extends StatelessWidget {
               context, 
               icon: CupertinoIcons.list_bullet, 
               page: 0, 
-              label: "To-do List"
+              label: "To-do List",
+              currentIndex: currentIndex,
+              onPageChanged: onPageChanged,
             ),
           ),
           Expanded(

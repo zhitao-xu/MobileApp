@@ -26,5 +26,3 @@ doc/api/
 .flutter-plugins
 .flutter-plugins-dependencies
 .vscode/settings.json
-flutter_application_1/android/app/build.gradle
-flutter_application_1/android/settings.gradle

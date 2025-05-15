@@ -6,8 +6,6 @@ import 'package:flutter_application_1/widget/navigator_app_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../todo_bloc/todo_bloc.dart';
 import '../data/todo.dart';
-import 'subtask_details.dart';
-import 'edit_task_page.dart';
 
 
 class TaskDetailsPage extends StatefulWidget {

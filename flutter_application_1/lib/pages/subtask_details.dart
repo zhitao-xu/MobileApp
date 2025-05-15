@@ -74,15 +74,14 @@ class _SubtaskDetailsPageState extends State<SubtaskDetailsPage> {
             color: white,
             padding: const EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Form fields in a scrollable area
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 16),
-                        
                         _buildTextField(_titleController, 'Title', 'Enter subtask title'),
                         const SizedBox(height: 16),
                         _buildTextField(_subtitleController, 'Description', 'Enter subtask description'),
@@ -94,29 +93,29 @@ class _SubtaskDetailsPageState extends State<SubtaskDetailsPage> {
                         _buildDateField(_deadlineController, 'Deadline', context),
                         const SizedBox(height: 16),
                         _buildTextField(_remindController, 'Remind', 'Set reminder time'),
-                        const SizedBox(height: 32),
-                        
-                        // Save button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: lightBlue,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            onPressed: _saveSubtask,
-                            child: const Text(
-                              'Save Changes',
-                              style: TextStyle(color: white, fontSize: 16),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
                 ),
-                // Remove any potential gap or placeholder here
+                
+                // Save button positioned at the bottom with minimal spacing
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: amber,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: _saveSubtask,
+                      child: const Text(
+                        'Save Changes',
+                        style: TextStyle(color: white, fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           );
@@ -222,8 +221,7 @@ class _SubtaskDetailsPageState extends State<SubtaskDetailsPage> {
         updatedSubtask
       )
     );
-    
-  
+
     // Navigate back
     Navigator.pop(context);
   }

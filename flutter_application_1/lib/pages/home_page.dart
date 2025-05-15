@@ -187,12 +187,17 @@ class _HomePageState extends State<HomePage> {
           startActionPane: ActionPane(
             motion: const ScrollMotion(),
             children: [
-              SlidableAction(
+                CustomSlidableAction(
                 onPressed: (_) => removeTodo(todo),
                 backgroundColor: const Color(0xFFFE4A49),
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-                label: 'Delete',
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.delete, color: Colors.white),
+                    SizedBox(height: 4),
+                    Text('Delete', style: TextStyle(color: Colors.white)),
+                  ],
+                ),
               ),
             ],
           ),

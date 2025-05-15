@@ -75,6 +75,8 @@ class _HomePageState extends State<HomePage> {
               state.todos.where((todo) => todo.isDone).toList();
 
               return ListView(
+                // Added padding to the bottom to move the last task out of the way of the add task floating action button
+                padding: const EdgeInsets.only(bottom: 85.0), // Adjust this value as needed
                 children: [
                   if (todos.isNotEmpty) ...[
                     const Padding(
@@ -136,7 +138,7 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Slidable(
-          key: ValueKey(todo.title),
+          key: ValueKey(todo.title + todo.date), // Using title + date for a more unique key
           startActionPane: ActionPane(
             motion: const ScrollMotion(),
             children: [
@@ -167,6 +169,9 @@ class _HomePageState extends State<HomePage> {
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
+                // Added potential overflow handling for long titles
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
               ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,8 +182,13 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.black,
                       fontSize: 14,
                     ),
+                    // Added potential overflow handling for long subtitles
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    maxLines: 2, // Added maxLines to prevent unbounded height in list
                   ),
-                  const SizedBox(height: 4),
+                  // Keep the Deadline text
+                  const SizedBox(height: 4), // Keep spacing if deadline is shown
                   Text(
                     'Deadline: ${todo.deadline}',
                     style: TextStyle(
@@ -186,21 +196,7 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.grey[700],
                     ),
                   ),
-                  Text(
-                    'Remind: ${todo.remind}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Created: ${todo.date}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                    ),
-                  ),
+                  // Removed remind and created text as they were un-needed
                 ],
               ),
               trailing: Checkbox(
@@ -214,5 +210,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 }

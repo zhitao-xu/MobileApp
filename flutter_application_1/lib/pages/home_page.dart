@@ -198,15 +198,6 @@ class _HomePageState extends State<HomePage> {
                     Text('Delete', style: TextStyle(color: Colors.white)),
                   ],
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.delete, color: Colors.white),
-                    SizedBox(height: 4),
-                    Text('Delete', style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-                
               ),
             ],
           ),

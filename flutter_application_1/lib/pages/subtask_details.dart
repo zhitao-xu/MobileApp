@@ -210,7 +210,7 @@ class _SubtaskDetailsPageState extends State<SubtaskDetailsPage> {
       isDone: _isDone,
       priority: _priorityController.text,
       date: _dateController.text,
-      deadline: _deadlineController.text,
+      // deadline: _deadlineController.text,
       remind: _remindController.text,
     );
     

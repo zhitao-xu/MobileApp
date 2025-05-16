@@ -81,8 +81,8 @@ class _HomePageState extends State<HomePage> {
                 try {
                   // Attempt to parse the deadline strings into DateTime objects
                   // IMPORTANT: This assumes todo.deadline is in a format DateTime.parse can handle (like ISO 8601: "YYYY-MM-DD")
-                  final deadlineA = DateTime.parse(a.deadline);
-                  final deadlineB = DateTime.parse(b.deadline);
+                  final deadlineA = DateTime.parse('${a.deadline[0]} ${a.deadline[1]}');
+                  final deadlineB = DateTime.parse('${b.deadline[0]} ${b.deadline[1]}');
 
                   // Use DateTime.compareTo which sorts chronologically (earliest to latest)
                   return deadlineA.compareTo(deadlineB);
@@ -110,8 +110,8 @@ class _HomePageState extends State<HomePage> {
                 return priorityCompare;
                 } else {
                 try {
-                  final deadlineA = DateTime.parse(a.deadline);
-                  final deadlineB = DateTime.parse(b.deadline);
+                  final deadlineA = DateTime.parse('${a.deadline[0]} ${a.deadline[1]}');
+                  final deadlineB = DateTime.parse('${b.deadline[0]} ${b.deadline[1]}');
                   return deadlineA.compareTo(deadlineB);
                 } catch (e) {
                   print('Error parsing deadline for sorting completed: ${a.title} or ${b.title} - $e');

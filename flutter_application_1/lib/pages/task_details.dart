@@ -20,26 +20,54 @@ class TaskDetailsPage extends StatefulWidget {
 class _TaskDetailsPageState extends State<TaskDetailsPage> {
   late TextEditingController _titleController;
   late TextEditingController _subtitleController;
+  DateTime selectedDeadline = DateTime.now().add(const Duration(hours:2));
+  
+  // bool hasDeadline = false;
+  String selectedPriority = "None";
+  String selectedReminder = "None";
+
   late TextEditingController _priorityController;
-  late TextEditingController _deadlineController;
+  late TextEditingController _deadlineDateController;
+  late TextEditingController _deadlineTimeController;
   late TextEditingController _dateController;
   late TextEditingController _remindController;
   late Todo _currentTodo;
 
-
+  // Track if date and time are picked for UI display
+  bool _isDatePicked = false;
+  bool _isTimePicked = false;
 
   @override
   void initState() {
     super.initState();
     _currentTodo = context.read<TodoBloc>().state.todos[widget.taskIndex];
     
-      _titleController = TextEditingController(text: _currentTodo.title);
-      _subtitleController = TextEditingController(text: _currentTodo.subtitle);
-      _priorityController = TextEditingController(text: _currentTodo.priority);
-      _deadlineController = TextEditingController(text: _currentTodo.deadline);
-      _remindController = TextEditingController(text: _currentTodo.remind);
-      _dateController = TextEditingController(text: _currentTodo.date);
-
+    _titleController = TextEditingController(text: _currentTodo.title);
+    _subtitleController = TextEditingController(text: _currentTodo.subtitle);
+    _priorityController = TextEditingController(text: _currentTodo.priority);
+    
+    // Parse date and time if they're combined in the date field
+    String dateText = _currentTodo.date;
+    String timeText = "";
+    
+    // Check if the date field contains time information (looking for space followed by digits and colon)
+    if (dateText.contains(RegExp(r'\s\d+:'))) {
+      // Split date and time
+      final parts = dateText.split(RegExp(r'\s(?=\d+:)'));
+      if (parts.length > 1) {
+        dateText = parts[0].trim();
+        timeText = parts[1].trim();
+      }
+    }
+    
+    _dateController = TextEditingController(text: dateText);
+    _deadlineDateController = TextEditingController(text: _currentTodo.deadline[0]);
+    _deadlineTimeController = TextEditingController(text: _currentTodo.deadline[1]);
+    _remindController = TextEditingController(text: _currentTodo.remind);
+    
+    // Initialize picked states based on parsed data
+    _isDatePicked = dateText.isNotEmpty;
+    _isTimePicked = timeText.isNotEmpty;
   }
 
   @override
@@ -47,16 +75,71 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _titleController.dispose();
     _subtitleController.dispose();
     _priorityController.dispose();
-    _deadlineController.dispose();
+    _deadlineDateController.dispose();
     _remindController.dispose();
     _dateController.dispose();
     super.dispose();
   }
 
+  // Method to handle date picking
+  Future<void> _pickDate(BuildContext context) async {
+    final selectedDate = await showDatePicker(  
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(DateTime.now().year + 100),
+    );
+
+    if (selectedDate != null) {
+      // Format date as day-month-year
+      final formattedDate = "${selectedDate.day}-${selectedDate.month}-${selectedDate.year}";
+      setState(() {
+        _deadlineDateController.text = formattedDate;
+        _isDatePicked = true;
+      });
+    }
+  }
+
+  // Method to handle time picking
+  Future<void> _pickTime(BuildContext context) async {
+    final selectedTime = await showTimePicker(
+      context: context,
+      initialTime: _parseTimeOfDay(_deadlineTimeController.text) ?? TimeOfDay.now(),
+    );
+
+    if (selectedTime != null) {
+      // Ensure minutes are formatted with leading zero if needed
+      final minutes = selectedTime.minute < 10 ? "0${selectedTime.minute}" : "${selectedTime.minute}";
+      // Format time as hour:minutes
+      final formattedTime = "${selectedTime.hour}:$minutes";
+      setState(() {
+        _deadlineTimeController.text = formattedTime;
+        _isTimePicked = true;
+      });
+    }
+  }
+  
+  // Helper method to parse a time string into TimeOfDay
+  TimeOfDay? _parseTimeOfDay(String timeString) {
+    if (timeString.isEmpty) return null;
+    
+    try {
+      final parts = timeString.split(':');
+      if (parts.length == 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        if (hour >= 0 && hour < 24 && minute >= 0 && minute < 60) {
+          return TimeOfDay(hour: hour, minute: minute);
+        }
+      }
+    } catch (e) {
+      // Parsing failed, return null
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
-
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: lightBlue, 
     ));
@@ -64,29 +147,29 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     return Scaffold(
       backgroundColor: lightBlue,
       appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(300),
-            child: NavigatorAppBar(
-              title: "",
-              widget: Row(
-                children: [
-                  TextButton(
-                    onPressed: _saveTask,
-                    child: const Text(
-                      "Done",
-                      style: TextStyle(
-                        color: black,
-                        fontSize: 20,
-                      ),
-                    ),
+        preferredSize: const Size.fromHeight(300),
+        child: NavigatorAppBar(
+          title: "",
+          widget: Row(
+            children: [
+              TextButton(
+                onPressed: _saveTask,
+                child: const Text(
+                  "Done",
+                  style: TextStyle(
+                    color: black,
+                    fontSize: 20,
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
+        ),
+      ),
       body: BlocBuilder<TodoBloc, TodoState>(
         builder: (context, state){
           if (state.status == TodoStatus.loading) {
-              return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           return Container(
@@ -105,30 +188,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                       ),
                                 
                       // DATE SECTION
-                      Column(
-                        children: [
-                          // Date, Time Box
-                          _buildOptionsBox(
-                            icons: [
-                              _iconSetUp(
-                                icon: const Icon(
-                                  CupertinoIcons.calendar,
-                                ), 
-                                backgroundColor: red),
-                              _iconSetUp(
-                                icon: const Icon(
-                                  CupertinoIcons.time_solid,
-                                ),
-                                backgroundColor: blue,
-                              ),
-                            ],
-                            bodyTexts: [
-                              _bodyTextSetUp("Date"),
-                              _bodyTextSetUp("Time"),
-                            ],
-                          ),
-                        ],
-                      ),
+                      _buildDateTimeBox(context),
                     ],
                   ),
                 ),
@@ -140,32 +200,123 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     );
   }
 
-  void _saveTask() {
-  final updatedTodo = _currentTodo.copyWith(
-      title: _titleController.text,
-      subtitle: _subtitleController.text,
-      priority: _priorityController.text,
-      date: _dateController.text,
-      deadline: _deadlineController.text,
-      remind: _remindController.text,
+  // New method to build the date and time box
+  Widget _buildDateTimeBox(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+      child: Container(
+        padding: const EdgeInsets.all(6.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.white),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            // Date row
+            InkWell(
+              onTap: () => _pickDate(context),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10.0),
+                    child: _iconSetUp(
+                      icon: const Icon(CupertinoIcons.calendar),
+                      backgroundColor: red,
+                    ),
+                  ),
+                  Text(
+                    "Date", 
+                    style: TextStyle(
+                      color: black,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+                    child: _isDatePicked 
+                      ? Text(
+                          _deadlineDateController.text,
+                          style: const TextStyle(
+                            color: black,
+                            fontSize: 16,
+                          ),
+                        )
+                      : const SizedBox(),
+                  )
+                ],
+              ),
+            ),
+            
+            const Divider(
+              height: 1,
+              thickness: 0.25,
+              color: Colors.grey,
+              indent: 10,
+              endIndent: 10,
+            ),
+            
+            // Time row
+            InkWell(
+              onTap: () => _pickTime(context),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10.0),
+                    child: _iconSetUp(
+                      icon: const Icon(CupertinoIcons.time_solid),
+                      backgroundColor: blue,
+                    ),
+                  ),
+                  Text(
+                    "Time", 
+                    style: TextStyle(
+                      color: black,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+                    child: _isTimePicked 
+                      ? Text(
+                          _deadlineTimeController.text,
+                          style: const TextStyle(
+                            color: black,
+                            fontSize: 16,
+                          ),
+                        )
+                      : const SizedBox(),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
-    
-    context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex, updatedTodo));
-    
-    
-    // Navigate back
-    Navigator.pop(context);
-}
-}
+  }
 
-Widget _bodyTextSetUp(String text){
-  return Text(
-    text,
-    style: TextStyle(
-      color: black,
-      fontSize: 16,
-    ),
+void _saveTask() {
+  // Create a map of updated values
+  final updatedTodo = _currentTodo.copyWith(
+    title: _titleController.text,
+    subtitle: _subtitleController.text,
+    priority: _priorityController.text,
+    date: _dateController.text,
+    deadline: [_deadlineDateController.text, _deadlineTimeController.text],
+    remind: _remindController.text,
   );
+  
+  context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex, updatedTodo));
+  
+  // Navigate back
+  Navigator.pop(context);
+}
 }
 
 Widget _iconSetUp({
@@ -185,11 +336,10 @@ Widget _iconSetUp({
   );
 }
 
-
 Widget _buildTextField({
-    required List<TextEditingController> controllers,
-    required List<String> hints,
-  }) {
+  required List<TextEditingController> controllers,
+  required List<String> hints,
+}) {
   assert(controllers.length == hints.length);
   
   return Padding(
@@ -212,7 +362,7 @@ Widget _buildTextField({
               indent: 10,
               endIndent: 10,
             );
-          }else{
+          } else {
             final index = i ~/ 2;
           
             return TextField(
@@ -236,280 +386,3 @@ Widget _buildTextField({
     ),
   );
 }
-
-Widget _buildOptionsBox({
-  required List<Widget?> icons,
-  required List<Widget?> bodyTexts,
-}) {
-  // Ensure lists have the same length
-  assert(icons.length == bodyTexts.length, 'Icons and bodyTexts lists must have the same length');
-  
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-    child: Container(
-      padding: const EdgeInsets.all(6.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.white),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: _buildOptionBoxChildren(icons, bodyTexts),
-      ),
-    ),
-  );
-}
-
-List<Widget> _buildOptionBoxChildren(List<Widget?> icons, List<Widget?> bodyTexts) {
-  final List<Widget> children = [];
-  
-  for (int i = 0; i < icons.length; i++) {
-    children.add(
-      Row(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10.0),
-            child: icons[i] ?? const SizedBox(),
-          ),
-          Container(
-            child: bodyTexts[i] ?? const SizedBox(),
-          ),
-        ],
-      ),
-    );
-    
-    // Add a divider if this is not the last item
-    if (i < icons.length - 1 && icons.length > 1) {
-      children.add(
-        const Divider(
-          height: 1,
-          thickness: 0.25,
-          color: Colors.grey,
-          indent: 10,
-          endIndent: 10,
-        ),
-      );
-    }
-  }
-  
-  return children;
-}
-
-
-
-
-/* 
-
-  return BlocBuilder<TodoBloc, TodoState>(
-      builder: (context, state) {
-        final task = state.todos[taskIndex];
-
-        return Scaffold(
-          backgroundColor: lightBlue,
-          appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(300),
-            child: NavigatorAppBar(
-              title: task.title,
-              widget: IconButton(
-                icon: const Icon(Icons.edit_note),
-                color: black,
-                iconSize: 30,
-                onPressed: () { // Navigate to edit task page
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditTaskPage(taskIndex: taskIndex)
-                      ),
-                  );
-                },
-              ),
-            ),
-          ),
-          body: Container(
-            color: white,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Task Details Section
-                  const SizedBox(height: 8),
-                  Text(
-                    task.subtitle,
-                    style: const TextStyle(
-                      color: black,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // Priority section
-                  if (task.priority.isNotEmpty) _buildInfoRow('Priority', task.priority),
-                  
-                  // Deadline section
-                  if (task.deadline.isNotEmpty) _buildInfoRow('Deadline', task.deadline),
-                  
-                  // Remind section
-                  if (task.remind.isNotEmpty) _buildInfoRow('Remind', task.remind),
-                  
-                  const SizedBox(height: 24),
-            
-                  // Subtasks Section
-                  const Text(
-                    'Subtasks',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: task.subtasks.length,
-                      itemBuilder: (context, index) {
-                        final subTask = task.subtasks[index];
-                        return ListTile(
-                          leading: Checkbox(
-                            value: subTask.isDone,
-                            onChanged: (value) {
-                              if (index == 0 || task.subtasks[index - 1].isDone) {
-                                context.read<TodoBloc>().add(
-                                  CompleteSubTask(taskIndex, index),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'Complete the previous subtasks first.'),
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          title: Text(
-                            subTask.title,
-                            style: TextStyle(
-                              decoration: subTask.isDone
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
-                            ),
-                          ),
-                          subtitle: subTask.subtitle.isNotEmpty 
-                            ? Text(subTask.subtitle) 
-                            : null,
-                          trailing: IconButton(
-                            icon: const Icon(Icons.edit, size: 20),
-                            onPressed: () {
-                              // Navigate to edit subtask page
-                              Navigator.push(
-                                context, 
-                                MaterialPageRoute(
-                                  builder: (context) => SubtaskDetailsPage(
-                                    taskIndex: taskIndex,
-                                    subtaskIndex: index,
-                                  )
-                                )
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-            
-                  // Add Subtask Button
-                  ElevatedButton(
-                    onPressed: () {
-                      _showAddSubTaskDialog(context);
-                    },
-                    child: const Text('Add Subtask'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-
-
-
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: [
-          Text(
-            '$label: ',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
- */
-  /* void _showAddSubTaskDialog(BuildContext context) {
-    final subTaskController = TextEditingController();
-    final subtitleController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Add Subtask'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: subTaskController,
-                decoration: const InputDecoration(hintText: 'Enter subtask title'),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: subtitleController,
-                decoration: const InputDecoration(hintText: 'Enter subtask description (optional)'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (subTaskController.text.isNotEmpty) {
-                  context.read<TodoBloc>().add(
-                    AddSubTask(
-                      taskIndex,
-                      SubTask(
-                        title: subTaskController.text,
-                        subtitle: subtitleController.text,
-                      ),
-                    ),
-                  );
-                  Navigator.of(dialogContext).pop();
-                }
-              },
-              child: const Text('Add'),
-            ),
-          ],
-        );
-      },
-    );
-  } */

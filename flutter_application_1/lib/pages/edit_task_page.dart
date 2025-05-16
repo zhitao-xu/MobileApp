@@ -224,7 +224,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
       subtitle: _subtitleController.text,
       priority: _priorityController.text,
       date: _dateController.text,
-      deadline: _deadlineController.text,
+      // deadline: _deadlineController.text,
       remind: _remindController.text,
     );
     

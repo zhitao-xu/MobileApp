@@ -3,7 +3,7 @@ class SubTask {
   final String subtitle;
   bool isDone;
   String priority;
-  String deadline;
+  List<String> deadline;
   String remind;
   String date;
 
@@ -13,7 +13,7 @@ class SubTask {
     this.isDone = false,
     this.priority = '',
     this.date = '',
-    this.deadline = '',
+    this.deadline = const ['', ''],
     this.remind = '',
   });
 
@@ -23,7 +23,7 @@ class SubTask {
     bool? isDone,
     String? priority,
     String? date,
-    String? deadline,
+    List<String>? deadline,
     String? remind,
   }) {
     return SubTask(
@@ -44,7 +44,7 @@ class SubTask {
       isDone: json['isDone'] ?? false,
       priority: json['priority'] ?? '',
       date: json['date'] ?? '',
-      deadline: json['deadline'] ?? '',
+      deadline: List<String>.from(json['deadline'] ?? ['', '']),
       remind: json['remind'] ?? '',
     );
   }
@@ -67,7 +67,7 @@ class Todo {
   final String subtitle;
   bool isDone;
   String priority;
-  String deadline;
+  List<String> deadline;
   String remind;
   String date;
   List<SubTask> subtasks;
@@ -78,7 +78,7 @@ class Todo {
     this.isDone = false,
     this.priority = '',
     this.date = '',
-    this.deadline = '',
+    this.deadline = const ['', ''],
     this.remind = '',
     this.subtasks = const [],
   });
@@ -89,7 +89,7 @@ class Todo {
     bool? isDone,
     String? priority,
     String? date,
-    String? deadline,
+    List<String>? deadline,
     String? remind,
     List<SubTask>? subtasks,
   }) {
@@ -112,7 +112,7 @@ class Todo {
       isDone: json['isDone'],
       priority: json['priority'],
       date: json['date'],
-      deadline: json['deadline'],
+      deadline: List<String>.from(json['deadline'] ?? ['', '']),
       remind: json['remind'],
       subtasks: (json['subtasks'] as List<dynamic>?)
           ?.map((e) => SubTask.fromJson(e as Map<String, dynamic>))

@@ -179,7 +179,10 @@ Future<dynamic> addTaskDialog(BuildContext context) {
                         title: titleController.text.trim(),
                         subtitle: descriptionController.text.trim(),
                         priority: selectedPriority,
-                        deadline: DateFormat('yyyy-MM-dd HH:mm').format(selectedDeadline),
+                        deadline: [
+                          DateFormat('yyyy-MM-dd').format(selectedDeadline),
+                          DateFormat('HH:mm').format(selectedDeadline)
+                        ],
                         remind: selectedReminder,
                         date: DateTime.now().toString(),
                       ),

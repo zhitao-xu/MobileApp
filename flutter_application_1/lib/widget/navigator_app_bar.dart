@@ -24,10 +24,22 @@ class NavigatorAppBar extends StatelessWidget {
           child: Row(
             children: [
               GestureDetector(
-                child: Icon(CupertinoIcons.back),
                 onTap: () {
                   Navigator.pop(context);
                 },
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  width: 60,
+                  height: 60,
+                  child: Center(
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Icon(CupertinoIcons.back),
+                    ),
+                  ),
+                ),
               ),
               const Spacer(), // Pushes the title to the center
               Expanded(

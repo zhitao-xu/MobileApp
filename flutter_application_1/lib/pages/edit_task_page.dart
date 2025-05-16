@@ -31,7 +31,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
       _titleController = TextEditingController(text: _currentTodo.title);
       _subtitleController = TextEditingController(text: _currentTodo.subtitle);
       _priorityController = TextEditingController(text: _currentTodo.priority);
-      _deadlineController = TextEditingController(text: _currentTodo.deadline);
+      // _deadlineController = TextEditingController(text: _currentTodo.deadline);
       _remindController = TextEditingController(text: _currentTodo.remind);
       _dateController = TextEditingController(text: _currentTodo.date);
 

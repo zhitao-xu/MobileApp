@@ -46,9 +46,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _subtitleController = TextEditingController(text: _currentTodo.subtitle);
     _priorityController = TextEditingController(text: _currentTodo.priority);
     
-    // Parse date and time if they're combined in the date field
-    String dateText = _currentTodo.date;
-    String timeText = "";
+    
+    String dateText = _currentTodo.deadline[0];
+    String timeText = _currentTodo.deadline[1];
     
     // Check if the date field contains time information (looking for space followed by digits and colon)
     if (dateText.contains(RegExp(r'\s\d+:'))) {
@@ -76,6 +76,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _subtitleController.dispose();
     _priorityController.dispose();
     _deadlineDateController.dispose();
+    _deadlineTimeController.dispose();
     _remindController.dispose();
     _dateController.dispose();
     super.dispose();

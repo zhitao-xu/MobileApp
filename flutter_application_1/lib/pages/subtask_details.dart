@@ -38,7 +38,7 @@ class _SubtaskDetailsPageState extends State<SubtaskDetailsPage> {
       _titleController = TextEditingController(text: _currentSubtask.title);
       _subtitleController = TextEditingController(text: _currentSubtask.subtitle);
       _priorityController = TextEditingController(text: _currentSubtask.priority);
-      _deadlineController = TextEditingController(text: _currentSubtask.deadline);
+      // _deadlineController = TextEditingController(text: _currentSubtask.deadline);
       _remindController = TextEditingController(text: _currentSubtask.remind);
       _dateController = TextEditingController(text: _currentSubtask.date);
       _isDone = _currentSubtask.isDone;

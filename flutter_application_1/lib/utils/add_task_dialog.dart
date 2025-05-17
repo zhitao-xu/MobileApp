@@ -14,7 +14,7 @@ Future<dynamic> addTaskDialog(BuildContext context) {
     builder: (context) {
       TextEditingController titleController = TextEditingController();
       TextEditingController descriptionController = TextEditingController();
-      String selectedPriority = 'low';
+      String selectedPriority = 'none';
       String selectedReminder = '5 minutes before';
       DateTime selectedDeadline = DateTime.now().add(const Duration(hours: 2)); // Default to today
 
@@ -120,6 +120,10 @@ Future<dynamic> addTaskDialog(BuildContext context) {
                       DropdownMenuItem(
                         value: 'low',
                         child: Text('Low Priority'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'none',
+                        child: Text('None Priority'),
                       ),
                     ],
                     decoration: InputDecoration(

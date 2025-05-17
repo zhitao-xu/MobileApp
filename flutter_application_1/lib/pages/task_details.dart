@@ -46,7 +46,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _subtitleController = TextEditingController(text: _currentTodo.subtitle);
     _priorityController = TextEditingController(text: _currentTodo.priority);
     
-    
+    selectedPriority = _priorityController.text;
     String dateText = _currentTodo.deadline[0];
     String timeText = _currentTodo.deadline[1];
     
@@ -110,9 +110,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
     if (selectedTime != null) {
       // Ensure minutes are formatted with leading zero if needed
-      final minutes = selectedTime.minute < 10 ? "0${selectedTime.minute}" : "${selectedTime.minute}";
+      final minutes = selectedTime.minute.toString().padLeft(2, '0');
+      final hours = selectedTime.hour.toString().padLeft(2, '0');
       // Format time as hour:minutes
-      final formattedTime = "${selectedTime.hour}:$minutes";
+      final formattedTime = "$hours:$minutes";
       setState(() {
         _deadlineTimeController.text = formattedTime;
         _isTimePicked = true;
@@ -190,6 +191,8 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                       // DATE SECTION
                       _buildDateTimeBox(context),
 
+                      // REMIND & REPEAT SECTION
+
                       // PRIORITY SECTION
                       _buildSingleContainer(
                         icon: _iconSetUp(
@@ -200,10 +203,14 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                           backgroundColor: red,
                         ),
                         title: "Priority",
-                        info: _currentTodo.priority,
-                        onTap: () {
-                          print("Priority tapped");
-                        }
+                        info: _infoSetUp(
+                          text: _currentTodo.priority, 
+                          icon: Icon(
+                            CupertinoIcons.chevron_up_chevron_down,
+                            size: 20,
+                          ),
+                        ),
+                        onTap: (){ _showPriorityOptions(context); },
                       ),
                     ],
                   ),
@@ -245,8 +252,8 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                   ),
                   _textContainer(
                     text: "Date", 
-                    leftPadding: 0.0,
-                    rightPadding: 0.0,
+                    horizontalPadding: 0.0,
+                    verticalPadding: 0.0,
                   ),
                   const Spacer(),
                   Container(
@@ -275,8 +282,8 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                   ),
                   _textContainer(
                     text: "Time", 
-                    leftPadding: 0.0,
-                    rightPadding: 0.0,
+                    horizontalPadding: 0.0,
+                    verticalPadding: 0.0,
                   ),
                   const Spacer(),
                   Container(
@@ -310,8 +317,72 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     Navigator.pop(context);
   }
 
+  // Method to show priority options:  "None", "Low", "Medium", "High"
+  void _showPriorityOptions(BuildContext context){
+    final RenderBox button = context.findRenderObject() as RenderBox;
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final buttonPosition = button.localToGlobal(Offset.zero, ancestor: overlay);
+
+    // Calculate the position for the popup menu
+    // Position it right-aligned with the priority field and below it
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        buttonPosition + Offset(button.size.width - 150, 100), 
+        buttonPosition + Offset(button.size.width, 100)
+      ),
+      Offset.zero & overlay.size,
+    );
+
+    showMenu(
+      context: context,
+      position: position,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      elevation: 8.0,
+      color: white,
+      items:[
+        _buildPopupMenuItem("None"),
+        _buildPopupMenuItem("Low"),
+        _buildPopupMenuItem("Medium"),
+        _buildPopupMenuItem("High"),
+      ],
+    ).then((selectedValue){
+      if(selectedValue != null){
+        setState(() {
+          _priorityController.text = selectedValue;
+          _currentTodo.priority = selectedValue;
+          selectedPriority = selectedValue;
+        });
+      }
+    });
+  }
+
+  PopupMenuItem<String> _buildPopupMenuItem(String priority) {
+    bool isSelected = selectedPriority == priority;
+
+    return PopupMenuItem<String>(
+      value: priority,
+      height: 44.0,
+      padding: EdgeInsets.zero,
+      child: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Row(
+          children: [
+            isSelected
+              ? Icon(CupertinoIcons.checkmark_alt, size: 18)
+              : const SizedBox(width: 18),
+              SizedBox(width: 10),
+              Text(priority),
+          ],
+        ),
+      )
+    );
+  }
 
 }
+
 
 Widget _iconSetUp({
   required Icon icon,
@@ -385,12 +456,12 @@ Divider myDivider() {
   );
 }
 
-// Single Continer
+// Single Container
 Widget _buildSingleContainer({
   required Widget icon,
   required String title,
-  required String  info,
-  required VoidCallback onTap,
+  required Widget  info,
+  VoidCallback? onTap,
 }) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
@@ -402,10 +473,7 @@ Widget _buildSingleContainer({
             borderRadius: BorderRadius.circular(8.0),
           ),
         child: InkWell(
-          onTap: () {
-            //TODO: Handle tap
-            onTap.call();
-          },
+          onTap: onTap,
           child: Row(
             mainAxisSize: MainAxisSize.max,
             children: [
@@ -415,11 +483,11 @@ Widget _buildSingleContainer({
               ),
               _textContainer(
                 text: title,
-                leftPadding: 0.0,
-                rightPadding: 0.0,
+                horizontalPadding: 0.0,
+                verticalPadding: 0.0,
               ),
               const Spacer(),
-              _textContainer(text: info),
+              info,
             ],
           ),
         )
@@ -431,11 +499,11 @@ Widget _textContainer({
   required String text,
   Color ? color,
   double ? fontSize,
-  double ? leftPadding,
-  double ? rightPadding,
+  double ? horizontalPadding,
+  double ? verticalPadding,
 }){
   return Padding(
-    padding: EdgeInsets.symmetric(horizontal: leftPadding ?? 20.0, vertical: rightPadding ?? 20.0),
+    padding: EdgeInsets.symmetric(horizontal: horizontalPadding ?? 20.0, vertical: verticalPadding ?? 20.0),
     child: Text(
       text,
       style: TextStyle(
@@ -446,3 +514,21 @@ Widget _textContainer({
   );
 }
 
+Widget _infoSetUp({
+  required String text,
+  required Icon icon,
+}){
+  return Container(
+    padding: const EdgeInsets.all(6.0),
+    child: Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Row(
+        children: [
+          _textContainer(text: text, horizontalPadding: 0.0, verticalPadding: 0.0),
+          const SizedBox(width: 5),
+          Transform.scale(scaleY: 1.0, scaleX: 0.8, child:icon),
+        ],
+      ),
+    ),
+  );
+}

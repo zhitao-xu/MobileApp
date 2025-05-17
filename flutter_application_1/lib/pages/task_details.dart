@@ -187,9 +187,24 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                         controllers: [_titleController, _subtitleController], 
                         hints: ["Title", "Description"]
                       ),
-                                
                       // DATE SECTION
                       _buildDateTimeBox(context),
+
+                      // PRIORITY SECTION
+                      _buildSingleContainer(
+                        icon: _iconSetUp(
+                          icon: Icon(
+                            CupertinoIcons.exclamationmark,
+                            size: 28
+                          ),
+                          backgroundColor: red,
+                        ),
+                        title: "Priority",
+                        info: _currentTodo.priority,
+                        onTap: () {
+                          print("Priority tapped");
+                        }
+                      ),
                     ],
                   ),
                 ),
@@ -208,8 +223,8 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       child: Container(
         padding: const EdgeInsets.all(6.0),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.white),
+          color: white,
+          border: Border.all(color: white),
           borderRadius: BorderRadius.circular(8.0),
         ),
         child: Column(
@@ -228,37 +243,22 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                       backgroundColor: red,
                     ),
                   ),
-                  Text(
-                    "Date", 
-                    style: TextStyle(
-                      color: black,
-                      fontSize: 16,
-                    ),
+                  _textContainer(
+                    text: "Date", 
+                    leftPadding: 0.0,
+                    rightPadding: 0.0,
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
                     child: _isDatePicked 
-                      ? Text(
-                          _deadlineDateController.text,
-                          style: const TextStyle(
-                            color: black,
-                            fontSize: 16,
-                          ),
-                        )
+                      ? _textContainer(text: _deadlineDateController.text)
                       : const SizedBox(),
                   )
                 ],
               ),
             ),
             
-            const Divider(
-              height: 1,
-              thickness: 0.25,
-              color: Colors.grey,
-              indent: 10,
-              endIndent: 10,
-            ),
+            myDivider(),
             
             // Time row
             InkWell(
@@ -273,24 +273,15 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                       backgroundColor: blue,
                     ),
                   ),
-                  Text(
-                    "Time", 
-                    style: TextStyle(
-                      color: black,
-                      fontSize: 16,
-                    ),
+                  _textContainer(
+                    text: "Time", 
+                    leftPadding: 0.0,
+                    rightPadding: 0.0,
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
                     child: _isTimePicked 
-                      ? Text(
-                          _deadlineTimeController.text,
-                          style: const TextStyle(
-                            color: black,
-                            fontSize: 16,
-                          ),
-                        )
+                      ? _textContainer(text: _deadlineTimeController.text)
                       : const SizedBox(),
                   )
                 ],
@@ -302,22 +293,24 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     );
   }
 
-void _saveTask() {
-  // Create a map of updated values
-  final updatedTodo = _currentTodo.copyWith(
-    title: _titleController.text,
-    subtitle: _subtitleController.text,
-    priority: _priorityController.text,
-    date: _dateController.text,
-    deadline: [_deadlineDateController.text, _deadlineTimeController.text],
-    remind: _remindController.text,
-  );
-  
-  context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex, updatedTodo));
-  
-  // Navigate back
-  Navigator.pop(context);
-}
+  // Method to save the task
+  void _saveTask() {
+    final updatedTodo = _currentTodo.copyWith(
+      title: _titleController.text,
+      subtitle: _subtitleController.text,
+      priority: _priorityController.text,
+      date: _dateController.text,
+      deadline: [_deadlineDateController.text, _deadlineTimeController.text],
+      remind: _remindController.text,
+    );
+    
+    context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex, updatedTodo));
+    
+    // Navigate back
+    Navigator.pop(context);
+  }
+
+
 }
 
 Widget _iconSetUp({
@@ -356,13 +349,7 @@ Widget _buildTextField({
         mainAxisSize: MainAxisSize.min,
         children: List.generate(controllers.length*2-1, (i) {
           if (i.isOdd) {
-            return const Divider(
-              height: 1,
-              thickness: 0.25,
-              color: Colors.grey,
-              indent: 10,
-              endIndent: 10,
-            );
+            return myDivider();
           } else {
             final index = i ~/ 2;
           
@@ -387,3 +374,75 @@ Widget _buildTextField({
     ),
   );
 }
+
+Divider myDivider() {
+  return const Divider(
+    height: 1,
+    thickness: 0.25,
+    color: grey,
+    indent: 10,
+    endIndent: 10,
+  );
+}
+
+// Single Continer
+Widget _buildSingleContainer({
+  required Widget icon,
+  required String title,
+  required String  info,
+  required VoidCallback onTap,
+}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+    child: Container(
+      padding: const EdgeInsets.all(6.0),
+          decoration: BoxDecoration(
+            color: white,
+            border: Border.all(color: white),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        child: InkWell(
+          onTap: () {
+            //TODO: Handle tap
+            onTap.call();
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: icon,
+              ),
+              _textContainer(
+                text: title,
+                leftPadding: 0.0,
+                rightPadding: 0.0,
+              ),
+              const Spacer(),
+              _textContainer(text: info),
+            ],
+          ),
+        )
+    ),
+  );
+}
+
+Widget _textContainer({
+  required String text,
+  Color ? color,
+  double ? fontSize,
+  double ? leftPadding,
+  double ? rightPadding,
+}){
+  return Padding(
+    padding: EdgeInsets.symmetric(horizontal: leftPadding ?? 20.0, vertical: rightPadding ?? 20.0),
+    child: Text(
+      text,
+      style: TextStyle(
+        color: color ?? black,
+        fontSize: fontSize ?? 16,
+      ),
+    ),
+  );
+}
+

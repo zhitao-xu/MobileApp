@@ -11,6 +11,7 @@ const Color backgoundGrey = Color.fromARGB(255, 231, 230, 230);
 const Color red = Colors.red;
 const Color green = Colors.green;
 const Color blue = Colors.blue;
+const Color purple = Color.fromARGB(200, 175, 78, 192);
 
 class Themes{
   static final light = ThemeData(

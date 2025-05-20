@@ -10,9 +10,9 @@ import '../constants/tasks_constants.dart';
 
 
 class TaskDetailsPage extends StatefulWidget {
-  final int taskIndex;
+  final int? taskIndex;
 
-  const TaskDetailsPage({super.key, required this.taskIndex});
+  const TaskDetailsPage({super.key, this.taskIndex});
 
   @override
   State<TaskDetailsPage> createState() => _TaskDetailsPageState();
@@ -42,7 +42,18 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   @override
   void initState() {
     super.initState();
-    _currentTodo = context.read<TodoBloc>().state.todos[widget.taskIndex];
+    if(widget.taskIndex != null){
+      _currentTodo = context.read<TodoBloc>().state.todos[widget.taskIndex!];
+    } else {
+      _currentTodo = Todo
+        (title: '', 
+        subtitle: '', 
+        isDone: false, 
+        priority: 'None', 
+        deadline: ['None', 'None'], 
+        remind: tasksReminder[0], 
+        repeat: tasksRepeat[0]);
+    }
     
     _titleController = TextEditingController(text: _currentTodo.title);
     _subtitleController = TextEditingController(text: _currentTodo.subtitle);
@@ -307,7 +318,11 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       repeat: _repeatController.text,
     );
     
-    context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex, updatedTodo));
+    if(widget.taskIndex != null){
+      context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex!, updatedTodo));
+    }else{
+      context.read<TodoBloc>().add(AddTodo(updatedTodo));
+    }
     
     // Navigate back
     Navigator.pop(context);

@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/utils/add_task_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_application_1/widget/custom_app_bar.dart';
@@ -42,7 +41,12 @@ class _HomePageState extends State<HomePage> {
         height: 70,
         child: FloatingActionButton(
           onPressed: () {
-            addTaskDialog(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const TaskDetailsPage(),
+              ),
+            );
           },
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(50),

@@ -6,6 +6,7 @@ import 'package:flutter_application_1/widget/navigator_app_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../todo_bloc/todo_bloc.dart';
 import '../data/todo.dart';
+import '../constants/tasks_constants.dart';
 
 
 class TaskDetailsPage extends StatefulWidget {
@@ -25,12 +26,13 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   // bool hasDeadline = false;
   String selectedPriority = "None";
   String selectedReminder = "None";
+  String selectedRepeat = "None";
 
   late TextEditingController _priorityController;
   late TextEditingController _deadlineDateController;
   late TextEditingController _deadlineTimeController;
-  late TextEditingController _dateController;
   late TextEditingController _remindController;
+  late TextEditingController _repeatController;
   late Todo _currentTodo;
 
   // Track if date and time are picked for UI display
@@ -60,14 +62,16 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       }
     }
     
-    _dateController = TextEditingController(text: dateText);
     _deadlineDateController = TextEditingController(text: _currentTodo.deadline[0]);
     _deadlineTimeController = TextEditingController(text: _currentTodo.deadline[1]);
     _remindController = TextEditingController(text: _currentTodo.remind);
+    _repeatController = TextEditingController(text: _currentTodo.repeat);
     
     // Initialize picked states based on parsed data
     _isDatePicked = dateText.isNotEmpty;
     _isTimePicked = timeText.isNotEmpty;
+    selectedReminder = _remindController.text;
+    selectedRepeat = _repeatController.text;
   }
 
   @override
@@ -78,7 +82,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _deadlineDateController.dispose();
     _deadlineTimeController.dispose();
     _remindController.dispose();
-    _dateController.dispose();
+    _repeatController.dispose();
     super.dispose();
   }
 
@@ -189,10 +193,34 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                         hints: ["Title", "Description"]
                       ),
                       // DATE SECTION
-                      _buildDateTimeBox(context),
+                      _buildMultipleContainer(
+                        context: context,
+                        icons: [
+                          _iconSetUp(
+                            icon: Icon(CupertinoIcons.calendar,),
+                            backgroundColor: red,
+                          ),
+                          _iconSetUp(
+                            icon: Icon(CupertinoIcons.clock,),
+                            backgroundColor: blue,
+                          ),
+                        ],
+                        title: ["Date", "Time"],
+                        info: [
+                          _isDatePicked
+                            ? _textContainer(text: _deadlineDateController.text)
+                            : const SizedBox(),
+                          _isTimePicked
+                            ? _textContainer(text: _deadlineTimeController.text)
+                            : const SizedBox(),
+                        ],
+                        onTap: [
+                          () => _pickDate(context),
+                          () => _pickTime(context),
+                        ],
+                      ),
 
-                      // REMIND & REPEAT SECTION
-
+                      
                       // PRIORITY SECTION
                       _buildSingleContainer(
                         icon: _iconSetUp(
@@ -204,14 +232,59 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                         ),
                         title: "Priority",
                         info: _infoSetUp(
-                          text: _currentTodo.priority, 
+                          text: _priorityController.text,
                           icon: Icon(
                             CupertinoIcons.chevron_up_chevron_down,
                             size: 20,
                           ),
                         ),
-                        onTap: (){ _showPriorityOptions(context); },
+                        onTap: (){ 
+                          _showPopupOptions(
+                            context: context, 
+                            options: tasksPriority,
+                          ); 
+                        },
                       ),
+
+                      // REMIND & REPEAT SECTION
+                      _buildMultipleContainer(
+                        context: context, 
+                        icons: [
+                          _iconSetUp(
+                            icon: Icon(CupertinoIcons.bell),
+                            backgroundColor: purple,
+                          ),
+                          // _iconSetUp(
+                          //   icon: Icon(CupertinoIcons.repeat),
+                          //   backgroundColor: grey,
+                          // ),
+                        ], 
+                        title: ["Remind"], 
+                        info: [
+                          _infoSetUp(
+                            text: _remindController.text,
+                            icon: Icon(
+                              CupertinoIcons.chevron_up_chevron_down,
+                              size: 20,
+                            ),
+                          ),
+                          // _infoSetUp(
+                          //   text: _currentTodo.repeat, 
+                          //   icon: Icon(
+                          //     CupertinoIcons.chevron_up_chevron_down,
+                          //     size: 20,
+                          //   ),
+                          // ),
+                        ],
+                        onTap: [
+                          (){ _showPopupOptions(
+                            context: context, 
+                            options: tasksReminder
+                            ); 
+                          },
+                        ],
+                      ),
+
                     ],
                   ),
                 ),
@@ -223,92 +296,15 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     );
   }
 
-  // New method to build the date and time box
-  Widget _buildDateTimeBox(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-      child: Container(
-        padding: const EdgeInsets.all(6.0),
-        decoration: BoxDecoration(
-          color: white,
-          border: Border.all(color: white),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            // Date row
-            InkWell(
-              onTap: () => _pickDate(context),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10.0),
-                    child: _iconSetUp(
-                      icon: const Icon(CupertinoIcons.calendar),
-                      backgroundColor: red,
-                    ),
-                  ),
-                  _textContainer(
-                    text: "Date", 
-                    horizontalPadding: 0.0,
-                    verticalPadding: 0.0,
-                  ),
-                  const Spacer(),
-                  Container(
-                    child: _isDatePicked 
-                      ? _textContainer(text: _deadlineDateController.text)
-                      : const SizedBox(),
-                  )
-                ],
-              ),
-            ),
-            
-            myDivider(),
-            
-            // Time row
-            InkWell(
-              onTap: () => _pickTime(context),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10.0),
-                    child: _iconSetUp(
-                      icon: const Icon(CupertinoIcons.time_solid),
-                      backgroundColor: blue,
-                    ),
-                  ),
-                  _textContainer(
-                    text: "Time", 
-                    horizontalPadding: 0.0,
-                    verticalPadding: 0.0,
-                  ),
-                  const Spacer(),
-                  Container(
-                    child: _isTimePicked 
-                      ? _textContainer(text: _deadlineTimeController.text)
-                      : const SizedBox(),
-                  )
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // Method to save the task
   void _saveTask() {
     final updatedTodo = _currentTodo.copyWith(
       title: _titleController.text,
       subtitle: _subtitleController.text,
       priority: _priorityController.text,
-      date: _dateController.text,
       deadline: [_deadlineDateController.text, _deadlineTimeController.text],
       remind: _remindController.text,
+      repeat: _repeatController.text,
     );
     
     context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex, updatedTodo));
@@ -317,8 +313,12 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     Navigator.pop(context);
   }
 
-  // Method to show priority options:  "None", "Low", "Medium", "High"
-  void _showPriorityOptions(BuildContext context){
+  // Method to show pop up options
+  void _showPopupOptions({
+    required BuildContext context,
+    required List<String> options,
+
+  }){
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
     final buttonPosition = button.localToGlobal(Offset.zero, ancestor: overlay);
@@ -341,18 +341,20 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       ),
       elevation: 8.0,
       color: white,
-      items:[
-        _buildPopupMenuItem("None"),
-        _buildPopupMenuItem("Low"),
-        _buildPopupMenuItem("Medium"),
-        _buildPopupMenuItem("High"),
-      ],
+      items:options.map((option) => _buildPopupMenuItem(option)).toList(),
     ).then((selectedValue){
       if(selectedValue != null){
         setState(() {
-          _priorityController.text = selectedValue;
-          _currentTodo.priority = selectedValue;
-          selectedPriority = selectedValue;
+          if(options == tasksPriority){
+            selectedPriority = selectedValue;
+            _priorityController.text = selectedValue;
+          } else if (options == tasksRepeat) {
+            selectedRepeat = selectedValue;
+            _repeatController.text = selectedValue;
+          } else if (options == tasksReminder) {
+            selectedReminder = selectedValue;
+            _remindController.text = selectedValue;
+          }
         });
       }
     });
@@ -532,3 +534,67 @@ Widget _infoSetUp({
     ),
   );
 }
+
+// Multiple Containers
+ Widget _buildMultipleContainer({
+    required BuildContext context,
+    required List<Widget> icons,
+    required List<String> title,
+    required List<Widget> info,
+    required List<VoidCallback> onTap,
+  }) {
+    assert(icons.length == title.length && title.length == info.length && info.length == onTap.length, 'All lists must be of the same length');
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+      child: Container(
+        padding: const EdgeInsets.all(6.0),
+        decoration: BoxDecoration(
+          color: white,
+          border: Border.all(color: white),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: _buildMultipleRow(icons, title, info, onTap),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildMultipleRow(
+    List<Widget> icons,
+    List<String> title,
+    List<Widget> info,
+    List<VoidCallback> onTap,
+  ) {
+    List<Widget> rows = [];
+    
+    for (int i = 0; i < icons.length; i++) {
+      rows.add(
+        InkWell(
+          onTap: onTap[i],
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: icons[i],
+              ),
+              _textContainer(
+                text: title[i],
+                horizontalPadding: 0.0,
+                verticalPadding: 0.0,
+              ),
+              const Spacer(),
+              info[i],
+            ],
+          ),
+        ),
+      );
+      if (i < icons.length - 1) {
+        rows.add(myDivider());
+      }
+    }
+    return rows;
+  }

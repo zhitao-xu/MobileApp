@@ -5,6 +5,7 @@ class SubTask {
   String priority;
   List<String> deadline;
   String remind;
+  String repeat;
   String date;
 
   SubTask({
@@ -15,6 +16,7 @@ class SubTask {
     this.date = '',
     this.deadline = const ['', ''],
     this.remind = '',
+    this.repeat = '',
   });
 
   SubTask copyWith({
@@ -25,6 +27,7 @@ class SubTask {
     String? date,
     List<String>? deadline,
     String? remind,
+    String? repeat,
   }) {
     return SubTask(
       title: title ?? this.title,
@@ -34,6 +37,7 @@ class SubTask {
       date: date ?? this.date,
       deadline: deadline ?? this.deadline,
       remind: remind ?? this.remind,
+      repeat: repeat ?? this.repeat,
     );
   }
 
@@ -46,6 +50,7 @@ class SubTask {
       date: json['date'] ?? '',
       deadline: List<String>.from(json['deadline'] ?? ['', '']),
       remind: json['remind'] ?? '',
+      repeat: json['repeat'] ?? '',
     );
   }
 
@@ -58,6 +63,7 @@ class SubTask {
       'date': date,
       'deadline': deadline,
       'remind': remind,
+      'repeat': repeat,
     };
   }
 }
@@ -69,6 +75,7 @@ class Todo {
   String priority;
   List<String> deadline;
   String remind;
+  String repeat;
   String date;
   List<SubTask> subtasks;
 
@@ -80,6 +87,7 @@ class Todo {
     this.date = '',
     this.deadline = const ['', ''],
     this.remind = '',
+    this.repeat = '',
     this.subtasks = const [],
   });
 
@@ -91,6 +99,7 @@ class Todo {
     String? date,
     List<String>? deadline,
     String? remind,
+    String? repeat,
     List<SubTask>? subtasks,
   }) {
     return Todo(
@@ -101,6 +110,7 @@ class Todo {
       date: date ?? this.date,
       deadline: deadline ?? this.deadline,
       remind: remind ?? this.remind,
+      repeat: repeat ?? this.repeat,
       subtasks: subtasks ?? this.subtasks,
     );
   }
@@ -114,6 +124,7 @@ class Todo {
       date: json['date'],
       deadline: List<String>.from(json['deadline'] ?? ['', '']),
       remind: json['remind'],
+      repeat: json['repeat'],
       subtasks: (json['subtasks'] as List<dynamic>?)
           ?.map((e) => SubTask.fromJson(e as Map<String, dynamic>))
           .toList() ??
@@ -130,6 +141,7 @@ class Todo {
       'date': date,
       'deadline': deadline,
       'remind': remind,
+      'repeat': repeat,
       'subtasks': subtasks.map((e) => e.toJson()).toList(),
     };
   }

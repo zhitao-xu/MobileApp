@@ -6,10 +6,12 @@ class NavigatorAppBar extends StatelessWidget {
     super.key,
     required this.title,
     this.widget,
+    this.onBackTap,
   });
 
   final String title;
   final Widget? widget;
+  final Future<void> Function()? onBackTap;
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +26,12 @@ class NavigatorAppBar extends StatelessWidget {
           child: Row(
             children: [
               GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
+                onTap: () async {
+                  if (onBackTap != null) {
+                    await onBackTap!();
+                  } else {
+                    Navigator.pop(context);
+                  }
                 },
                 behavior: HitTestBehavior.opaque,
                 child: Container(
@@ -41,9 +47,9 @@ class NavigatorAppBar extends StatelessWidget {
                   ),
                 ),
               ),
-              const Spacer(), // Pushes the title to the center
+              const Spacer(),
               Expanded(
-                flex: 2, // Adjust the flex value as needed for spacing
+                flex: 2,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 50),
                   scrollDirection: Axis.horizontal,
@@ -57,7 +63,7 @@ class NavigatorAppBar extends StatelessWidget {
                   ),
                 ),
               ),
-              const Spacer(), // Ensures equal spacing on both sides of the title
+              const Spacer(),
               widget ?? const SizedBox(),
             ],
           ),

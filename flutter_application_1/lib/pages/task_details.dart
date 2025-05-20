@@ -155,160 +155,252 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     return null;
   }
 
+  Future<void> _handleBackNavigation() async{
+    // New tasks 
+    if(widget.taskIndex == null){
+      final hasContent = _titleController.text.isNotEmpty ||
+        _subtitleController.text.isNotEmpty ||
+        _priorityController.text != tasksPriority[0] ||
+        _isDatePicked ||
+        _isTimePicked ||
+        _remindController.text != tasksReminder[0] ||
+        _repeatController.text != tasksRepeat[0];
+
+      if (!hasContent) {
+        Navigator.of(context).pop();
+        return;
+      }
+    } else {
+      // Existing tasks
+      final hasChanges = _titleController.text != _currentTodo.title ||
+        _subtitleController.text != _currentTodo.subtitle ||
+        _priorityController.text != _currentTodo.priority ||
+        _deadlineDateController.text != _currentTodo.deadline[0] ||
+        _deadlineTimeController.text != _currentTodo.deadline[1] ||
+        _remindController.text != _currentTodo.remind ||
+        _repeatController.text != _currentTodo.repeat;
+
+      if (!hasChanges) {
+        Navigator.of(context).pop();
+        return;
+      }
+    }
+
+    final navigator = Navigator.of(context);
+    
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Unsaved Changes"),
+          content: const Text("You have unsaved changes. Do you want to save them before leaving?"),
+          actions: [
+            TextButton(
+              child: const Text("Discard"),
+              onPressed: () {
+                Navigator.of(context).pop(true); // Return true from dialog
+              },
+            ),
+            TextButton(
+              child: const Text("Save"),
+              onPressed: () {
+                Navigator.of(context).pop(false); // Return false from dialog
+                _saveTask(); // This will also pop
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    // If result is true, user chose to discard changes
+    if (result == true) {
+      navigator.pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: lightBlue, 
-    ));
-    
-    return Scaffold(
+    statusBarColor: lightBlue, 
+  ));
+  
+  return PopScope<dynamic>(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, dynamic result ) async {
+      if (didPop) return;
+      await _handleBackNavigation();
+    },
+    child: Scaffold(
       backgroundColor: lightBlue,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(300),
-        child: NavigatorAppBar(
-          title: "",
-          widget: Row(
-            children: [
-              TextButton(
-                onPressed: _saveTask,
-                child: const Text(
-                  "Done",
-                  style: TextStyle(
-                    color: black,
-                    fontSize: 20,
+      // Rest of your scaffold remains the same...
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(300),
+          child: NavigatorAppBar(
+            onBackTap: _handleBackNavigation,
+            title: "",
+            widget: Row(
+              children: [
+                TextButton(
+                  onPressed: _saveTask,
+                  child: const Text(
+                    "Done",
+                    style: TextStyle(
+                      color: black,
+                      fontSize: 20,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-      body: BlocBuilder<TodoBloc, TodoState>(
-        builder: (context, state){
-          if (state.status == TodoStatus.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        body: BlocBuilder<TodoBloc, TodoState>(
+          builder: (context, state){
+            if (state.status == TodoStatus.loading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          return Container(
-            color: backgoundGrey,
-            child: SizedBox.expand(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 14.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children:[
-                      // TITLE SECTION
-                      _buildTextField(
-                        controllers: [_titleController, _subtitleController], 
-                        hints: ["Title", "Description"]
-                      ),
-                      // DATE SECTION
-                      _buildMultipleContainer(
-                        context: context,
-                        icons: [
-                          _iconSetUp(
-                            icon: Icon(CupertinoIcons.calendar,),
+            return Container(
+              color: backgoundGrey,
+              child: SizedBox.expand(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 14.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children:[
+                        // TITLE SECTION
+                        _buildTextField(
+                          controllers: [_titleController, _subtitleController], 
+                          hints: ["Title", "Description"]
+                        ),
+                        // DATE SECTION
+                        _buildMultipleContainer(
+                          context: context,
+                          icons: [
+                            _iconSetUp(
+                              icon: Icon(CupertinoIcons.calendar,),
+                              backgroundColor: red,
+                            ),
+                            _iconSetUp(
+                              icon: Icon(CupertinoIcons.clock,),
+                              backgroundColor: blue,
+                            ),
+                          ],
+                          title: ["Date", "Time"],
+                          info: [
+                            _isDatePicked
+                              ? _textContainer(text: _deadlineDateController.text)
+                              : const SizedBox(),
+                            _isTimePicked
+                              ? _textContainer(text: _deadlineTimeController.text)
+                              : const SizedBox(),
+                          ],
+                          onTap: [
+                            () => _pickDate(context),
+                            () => _pickTime(context),
+                          ],
+                        ),
+
+                        
+                        // PRIORITY SECTION
+                        _buildSingleContainer(
+                          icon: _iconSetUp(
+                            icon: Icon(
+                              CupertinoIcons.exclamationmark,
+                              size: 28
+                            ),
                             backgroundColor: red,
                           ),
-                          _iconSetUp(
-                            icon: Icon(CupertinoIcons.clock,),
-                            backgroundColor: blue,
-                          ),
-                        ],
-                        title: ["Date", "Time"],
-                        info: [
-                          _isDatePicked
-                            ? _textContainer(text: _deadlineDateController.text)
-                            : const SizedBox(),
-                          _isTimePicked
-                            ? _textContainer(text: _deadlineTimeController.text)
-                            : const SizedBox(),
-                        ],
-                        onTap: [
-                          () => _pickDate(context),
-                          () => _pickTime(context),
-                        ],
-                      ),
-
-                      
-                      // PRIORITY SECTION
-                      _buildSingleContainer(
-                        icon: _iconSetUp(
-                          icon: Icon(
-                            CupertinoIcons.exclamationmark,
-                            size: 28
-                          ),
-                          backgroundColor: red,
-                        ),
-                        title: "Priority",
-                        info: _infoSetUp(
-                          text: _priorityController.text,
-                          icon: Icon(
-                            CupertinoIcons.chevron_up_chevron_down,
-                            size: 20,
-                          ),
-                        ),
-                        onTap: (){ 
-                          _showPopupOptions(
-                            context: context, 
-                            options: tasksPriority,
-                          ); 
-                        },
-                      ),
-
-                      // REMIND & REPEAT SECTION
-                      _buildMultipleContainer(
-                        context: context, 
-                        icons: [
-                          _iconSetUp(
-                            icon: Icon(CupertinoIcons.bell),
-                            backgroundColor: purple,
-                          ),
-                          // _iconSetUp(
-                          //   icon: Icon(CupertinoIcons.repeat),
-                          //   backgroundColor: grey,
-                          // ),
-                        ], 
-                        title: ["Remind"], 
-                        info: [
-                          _infoSetUp(
-                            text: _remindController.text,
+                          title: "Priority",
+                          info: _infoSetUp(
+                            text: _priorityController.text,
                             icon: Icon(
                               CupertinoIcons.chevron_up_chevron_down,
                               size: 20,
                             ),
                           ),
-                          // _infoSetUp(
-                          //   text: _currentTodo.repeat, 
-                          //   icon: Icon(
-                          //     CupertinoIcons.chevron_up_chevron_down,
-                          //     size: 20,
-                          //   ),
-                          // ),
-                        ],
-                        onTap: [
-                          (){ _showPopupOptions(
-                            context: context, 
-                            options: tasksReminder
+                          onTap: (){ 
+                            _showPopupOptions(
+                              context: context, 
+                              options: tasksPriority,
                             ); 
                           },
-                        ],
-                      ),
+                        ),
 
-                    ],
+                        // REMIND & REPEAT SECTION
+                        _buildMultipleContainer(
+                          context: context, 
+                          icons: [
+                            _iconSetUp(
+                              icon: Icon(CupertinoIcons.bell),
+                              backgroundColor: purple,
+                            ),
+                            // _iconSetUp(
+                            //   icon: Icon(CupertinoIcons.repeat),
+                            //   backgroundColor: grey,
+                            // ),
+                          ], 
+                          title: ["Remind"], 
+                          info: [
+                            _infoSetUp(
+                              text: _remindController.text,
+                              icon: Icon(
+                                CupertinoIcons.chevron_up_chevron_down,
+                                size: 20,
+                              ),
+                            ),
+                            // _infoSetUp(
+                            //   text: _currentTodo.repeat, 
+                            //   icon: Icon(
+                            //     CupertinoIcons.chevron_up_chevron_down,
+                            //     size: 20,
+                            //   ),
+                            // ),
+                          ],
+                          onTap: [
+                            (){ _showPopupOptions(
+                              context: context, 
+                              options: tasksReminder
+                              ); 
+                            },
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        }
-      )
+            );
+          }
+        )
+      ),
     );
   }
 
   // Method to save the task
   void _saveTask() {
+    if (_titleController.text.trim().isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Missing Title"),
+            content: const Text("Please enter a title for the task before saving."),
+            actions: [
+              TextButton(
+                child: const Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
     final updatedTodo = _currentTodo.copyWith(
       title: _titleController.text,
       subtitle: _subtitleController.text,

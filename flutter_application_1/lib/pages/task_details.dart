@@ -24,9 +24,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   DateTime selectedDeadline = DateTime.now().add(const Duration(hours:2));
   
   // bool hasDeadline = false;
-  String selectedPriority = "None";
-  String selectedReminder = "None";
-  String selectedRepeat = "None";
+  String selectedPriority = tasksPriority[0];
+  String selectedReminder = tasksReminder[0];
+  String selectedRepeat = tasksRepeat[0];
 
   late TextEditingController _priorityController;
   late TextEditingController _deadlineDateController;
@@ -38,6 +38,12 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   // Track if date and time are picked for UI display
   bool _isDatePicked = false;
   bool _isTimePicked = false;
+
+  // Global Keys
+  final GlobalKey _priorityKey = GlobalKey();
+  final GlobalKey _reminderKey = GlobalKey();
+  final GlobalKey _repeatKey = GlobalKey();
+  
 
   @override
   void initState() {
@@ -315,6 +321,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                           ),
                           title: "Priority",
                           info: _infoSetUp(
+                            key: _priorityKey,
                             text: _priorityController.text,
                             icon: Icon(
                               CupertinoIcons.chevron_up_chevron_down,
@@ -322,9 +329,11 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                             ),
                           ),
                           onTap: (){ 
+                            final RenderBox buttonBox = _priorityKey.currentContext!.findRenderObject() as RenderBox;
                             _showPopupOptions(
                               context: context, 
                               options: tasksPriority,
+                              buttonBox: buttonBox,
                             ); 
                           },
                         ),
@@ -337,32 +346,45 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                               icon: Icon(CupertinoIcons.bell),
                               backgroundColor: purple,
                             ),
-                            // _iconSetUp(
-                            //   icon: Icon(CupertinoIcons.repeat),
-                            //   backgroundColor: grey,
-                            // ),
+                            _iconSetUp(
+                              icon: Icon(CupertinoIcons.repeat),
+                              backgroundColor: grey,
+                            ),
                           ], 
-                          title: ["Remind"], 
+                          title: ["Remind", "Repeat"], 
                           info: [
                             _infoSetUp(
+                              key: _reminderKey,
                               text: _remindController.text,
                               icon: Icon(
                                 CupertinoIcons.chevron_up_chevron_down,
                                 size: 20,
                               ),
                             ),
-                            // _infoSetUp(
-                            //   text: _currentTodo.repeat, 
-                            //   icon: Icon(
-                            //     CupertinoIcons.chevron_up_chevron_down,
-                            //     size: 20,
-                            //   ),
-                            // ),
+                            _infoSetUp(
+                              key: _repeatKey,
+                              text: _repeatController.text, 
+                              icon: Icon(
+                                CupertinoIcons.chevron_up_chevron_down,
+                                size: 20,
+                              ),
+                            ),
                           ],
                           onTap: [
-                            (){ _showPopupOptions(
-                              context: context, 
-                              options: tasksReminder
+                            (){ 
+                              final RenderBox buttonBox = _reminderKey.currentContext!.findRenderObject() as RenderBox;
+                              _showPopupOptions(
+                                context: context, 
+                                options: tasksReminder,
+                                buttonBox: buttonBox,
+                              ); 
+                            },
+                            (){ 
+                              final RenderBox buttonBox = _repeatKey.currentContext!.findRenderObject() as RenderBox;
+                              _showPopupOptions(
+                                context: context, 
+                                options: tasksRepeat,
+                                buttonBox: buttonBox,
                               ); 
                             },
                           ],
@@ -424,21 +446,42 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   void _showPopupOptions({
     required BuildContext context,
     required List<String> options,
+    required RenderBox buttonBox,
 
   }){
-    final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    final buttonPosition = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final buttonPosition = buttonBox.localToGlobal(Offset.zero, ancestor: overlay);
 
-    // Calculate the position for the popup menu
-    // Position it right-aligned with the priority field and below it
-    final position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        buttonPosition + Offset(button.size.width - 150, 100), 
-        buttonPosition + Offset(button.size.width, 100)
-      ),
-      Offset.zero & overlay.size,
-    );
+    final Size screenSize = overlay.size;
+    const double verticalOffset = 5.0;
+
+    final double estimatePopupHeight = (44.0 * options.length) + 16.0;
+
+    final double bottomSpace = screenSize.height - (buttonPosition.dy + buttonBox.size.height);
+    final bool showBelow = bottomSpace >= estimatePopupHeight;
+
+    final RelativeRect position;
+
+    if(showBelow){
+      // show below the button
+      position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          buttonPosition + Offset(0, buttonBox.size.height + verticalOffset), 
+          buttonPosition + Offset(buttonBox.size.width, buttonBox.size.height + verticalOffset)
+        ),
+        Offset.zero & overlay.size,
+      );
+    } else {
+      // show above the button
+      position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          buttonPosition - Offset(0, verticalOffset), 
+          buttonPosition + Offset(buttonBox.size.width, 0)
+        ),
+        Offset.zero & overlay.size,
+      );
+    }
+
 
     showMenu(
       context: context,
@@ -448,7 +491,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       ),
       elevation: 8.0,
       color: white,
-      items:options.map((option) => _buildPopupMenuItem(option)).toList(),
+      items:options.map((option) => _buildPopupMenuItem(
+        value: option,
+        selectedValue: _getSelectedValueForOption(options),
+      )).toList(),
     ).then((selectedValue){
       if(selectedValue != null){
         setState(() {
@@ -467,11 +513,25 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     });
   }
 
-  PopupMenuItem<String> _buildPopupMenuItem(String priority) {
-    bool isSelected = selectedPriority == priority;
+  String _getSelectedValueForOption(List<String> options) {
+      if (options == tasksPriority) {
+      return selectedPriority;
+    } else if (options == tasksRepeat) {
+      return selectedRepeat;
+    } else if (options == tasksReminder) {
+      return selectedReminder;
+    }
+    return '';
+  }
+
+  PopupMenuItem<String> _buildPopupMenuItem({
+    required String value,
+    required String selectedValue,
+  }) {
+    bool isSelected = value == selectedValue;
 
     return PopupMenuItem<String>(
-      value: priority,
+      value: value,
       height: 44.0,
       padding: EdgeInsets.zero,
       child: Container(
@@ -483,13 +543,12 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
               ? Icon(CupertinoIcons.checkmark_alt, size: 18)
               : const SizedBox(width: 18),
               SizedBox(width: 10),
-              Text(priority),
+              Text(value),
           ],
         ),
       )
     );
   }
-
 }
 
 
@@ -624,10 +683,12 @@ Widget _textContainer({
 }
 
 Widget _infoSetUp({
+  Key? key,
   required String text,
   required Icon icon,
 }){
   return Container(
+    key: key,
     padding: const EdgeInsets.all(6.0),
     child: Padding(
       padding: const EdgeInsets.all(10.0),
@@ -643,65 +704,65 @@ Widget _infoSetUp({
 }
 
 // Multiple Containers
- Widget _buildMultipleContainer({
-    required BuildContext context,
-    required List<Widget> icons,
-    required List<String> title,
-    required List<Widget> info,
-    required List<VoidCallback> onTap,
-  }) {
-    assert(icons.length == title.length && title.length == info.length && info.length == onTap.length, 'All lists must be of the same length');
+Widget _buildMultipleContainer({
+  required BuildContext context,
+  required List<Widget> icons,
+  required List<String> title,
+  required List<Widget> info,
+  required List<VoidCallback> onTap,
+}) {
+  assert(icons.length == title.length && title.length == info.length && info.length == onTap.length, 'All lists must be of the same length');
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-      child: Container(
-        padding: const EdgeInsets.all(6.0),
-        decoration: BoxDecoration(
-          color: white,
-          border: Border.all(color: white),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: _buildMultipleRow(icons, title, info, onTap),
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+    child: Container(
+      padding: const EdgeInsets.all(6.0),
+      decoration: BoxDecoration(
+        color: white,
+        border: Border.all(color: white),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: _buildMultipleRow(icons, title, info, onTap),
+      ),
+    ),
+  );
+}
+
+List<Widget> _buildMultipleRow(
+  List<Widget> icons,
+  List<String> title,
+  List<Widget> info,
+  List<VoidCallback> onTap,
+) {
+  List<Widget> rows = [];
+  
+  for (int i = 0; i < icons.length; i++) {
+    rows.add(
+      InkWell(
+        onTap: onTap[i],
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: icons[i],
+            ),
+            _textContainer(
+              text: title[i],
+              horizontalPadding: 0.0,
+              verticalPadding: 0.0,
+            ),
+            const Spacer(),
+            info[i],
+          ],
         ),
       ),
     );
-  }
-
-  List<Widget> _buildMultipleRow(
-    List<Widget> icons,
-    List<String> title,
-    List<Widget> info,
-    List<VoidCallback> onTap,
-  ) {
-    List<Widget> rows = [];
-    
-    for (int i = 0; i < icons.length; i++) {
-      rows.add(
-        InkWell(
-          onTap: onTap[i],
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: icons[i],
-              ),
-              _textContainer(
-                text: title[i],
-                horizontalPadding: 0.0,
-                verticalPadding: 0.0,
-              ),
-              const Spacer(),
-              info[i],
-            ],
-          ),
-        ),
-      );
-      if (i < icons.length - 1) {
-        rows.add(myDivider());
-      }
+    if (i < icons.length - 1) {
+      rows.add(myDivider());
     }
-    return rows;
   }
+  return rows;
+}

@@ -3,8 +3,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/calendar/events_example.dart';
-import 'package:flutter_application_1/pages/calendar/examples/basic_example.dart';
-import 'package:flutter_application_1/pages/calendar/examples/complex_example.dart';
+import 'package:flutter_application_1/pages/calendar/examples/table_basics_example.dart';
+import 'package:flutter_application_1/pages/calendar/examples/table_complex_example.dart';
 import 'package:flutter_application_1/pages/calendar/examples/multi_example.dart';
 import 'package:flutter_application_1/pages/calendar/examples/range_example.dart';
 import 'package:intl/date_symbol_data_local.dart';

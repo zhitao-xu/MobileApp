@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_application_1/widget/custom_app_bar.dart';
+import 'calendar_widget.dart';
+import 'package:flutter_application_1/data/todo.dart';
 
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key});
+  final List<Todo> todos;
+  const CalendarPage({super.key, required this.todos});
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();
@@ -12,22 +15,24 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> {
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: lightBlue,
-
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(100),
+      appBar: const PreferredSize( // Removed PreferredSize for CustomAppBar - assuming it's handling its own size
+        preferredSize: Size.fromHeight(100), // Assuming CustomAppBar uses this height
         child: CustomAppBar(
           title: "Calendar\n",
           isHome: false,
         ),
       ),
-
       body: Container(
         color: white,
-     ),
+        // The CalendarWidget will fill the rest of the available space
+        child: CalendarWidget(
+          tasks: widget.todos, // <--- Pass your list of Todo items here
+        ),
+      ),
     );
   }
 }

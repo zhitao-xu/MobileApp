@@ -68,16 +68,16 @@ class CustomAppBar extends StatelessWidget {
         children: isHome ? [
           TextSpan(
             text: title,
-            style: titleStyle,
+            style: homeTitleStyle,
           ),
           TextSpan(
             text:  DateFormat.yMMMMd().format(DateTime.now()),
-            style: subTitleStyle,
+            style: homeSubTitleStyle,
           ),
         ] : [
           TextSpan(
             text: title,
-            style: titleStyle,
+            style: homeTitleStyle,
           ),
         ],
       ),

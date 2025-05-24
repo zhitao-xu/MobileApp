@@ -59,7 +59,7 @@ class NavigatorAppBar extends StatelessWidget {
                     maxLines: 1,
                     softWrap: false,
                     textAlign: TextAlign.center,
-                    style: titleStyle,
+                    style: homeTitleStyle,
                   ),
                 ),
               ),

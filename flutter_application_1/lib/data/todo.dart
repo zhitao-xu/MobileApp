@@ -77,6 +77,7 @@ class Todo {
   String remind;
   String repeat;
   String date;
+  List<String> tags;
   List<SubTask> subtasks;
 
   Todo({
@@ -88,6 +89,7 @@ class Todo {
     this.deadline = const ['', ''],
     this.remind = '',
     this.repeat = '',
+    this.tags = const [],
     this.subtasks = const [],
   });
 
@@ -111,6 +113,7 @@ class Todo {
       deadline: deadline ?? this.deadline,
       remind: remind ?? this.remind,
       repeat: repeat ?? this.repeat,
+      tags: tags,
       subtasks: subtasks ?? this.subtasks,
     );
   }
@@ -125,6 +128,7 @@ class Todo {
       deadline: List<String>.from(json['deadline'] ?? ['', '']),
       remind: json['remind'],
       repeat: json['repeat'],
+      tags: List<String>.from(json['tags'] ?? []),
       subtasks: (json['subtasks'] as List<dynamic>?)
           ?.map((e) => SubTask.fromJson(e as Map<String, dynamic>))
           .toList() ??
@@ -142,6 +146,7 @@ class Todo {
       'deadline': deadline,
       'remind': remind,
       'repeat': repeat,
+      'tags': tags,
       'subtasks': subtasks.map((e) => e.toJson()).toList(),
     };
   }

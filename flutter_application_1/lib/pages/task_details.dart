@@ -56,7 +56,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         subtitle: '', 
         isDone: false, 
         priority: 'None', 
-        deadline: ['None', 'None'], 
+        deadline: ['', ''], 
         remind: tasksReminder[0], 
         repeat: tasksRepeat[0]);
     }
@@ -119,6 +119,13 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         _deadlineDateController.text = formattedDate;
         _isDatePicked = true;
       });
+    }else{
+      setState(
+        () {
+          _isDatePicked = false;
+          _deadlineDateController.clear();
+        },
+      );
     }
   }
 
@@ -138,6 +145,11 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       setState(() {
         _deadlineTimeController.text = formattedTime;
         _isTimePicked = true;
+      });
+    }else{
+      setState(() {
+        _isTimePicked = false;
+        _deadlineTimeController.clear();
       });
     }
   }
@@ -294,18 +306,90 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                               backgroundColor: blue,
                             ),
                           ],
-                          title: ["Date", "Time"],
+                          title: [
+                            Container(
+                              alignment: Alignment.centerLeft,
+                              child: _isDatePicked 
+                                ? Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("Date", style: taskTitleStyle),
+                                      if(_isDatePicked) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _deadlineDateController.text,
+                                          style: taskInfoStyle.copyWith(
+                                            color: blue,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ) 
+                                : Text("Date", style: taskTitleStyle)
+                            ),
+                            Container(
+                              alignment: Alignment.centerLeft,
+                              child: _isTimePicked
+                                ?  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("Time", style: taskTitleStyle),
+                                      if(_isDatePicked) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _deadlineTimeController.text,
+                                          style: taskInfoStyle.copyWith(
+                                            color: blue,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  )
+                                : Text("Time", style: taskTitleStyle),
+                            ),
+                          ],
                           info: [
-                            _isDatePicked
-                              ? _textContainer(text: _deadlineDateController.text)
-                              : const SizedBox(),
-                            _isTimePicked
-                              ? _textContainer(text: _deadlineTimeController.text)
-                              : const SizedBox(),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Switch(
+                                value: _isDatePicked,
+                                onChanged: (value) async {
+                                  if (value) {
+                                    await _pickDate(context);
+                                  }else{
+                                    setState(() {
+                                      _isDatePicked = false;
+                                      _isTimePicked = false;
+                                      _deadlineDateController.clear();
+                                      _deadlineTimeController.clear();
+                                    });
+                                  }
+                                  
+                                },
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Switch(
+                                value: _isTimePicked,
+                                onChanged: _isDatePicked
+                                  ? (value) async{
+                                      if(value) {
+                                        await _pickTime(context);
+                                      }else{
+                                        setState(() {
+                                          _isTimePicked = false;
+                                          _deadlineTimeController.clear();
+                                        });
+                                      }
+                                    }
+                                  : null,
+                              ),
+                            ),
                           ],
                           onTap: [
-                            () => _pickDate(context),
-                            () => _pickTime(context),
+                            () => _isDatePicked ? _pickDate(context) : null,
+                            () => _isTimePicked ? _pickTime(context) : null,
                           ],
                         ),
 
@@ -351,7 +435,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                               backgroundColor: grey,
                             ),
                           ], 
-                          title: ["Remind", "Repeat"], 
+                          title: [
+                            Text("Remind", style: taskTitleStyle,),
+                            Text("Repeat",style: taskTitleStyle,),
+                          ], 
                           info: [
                             _infoSetUp(
                               key: _reminderKey,
@@ -646,38 +733,18 @@ Widget _buildSingleContainer({
             mainAxisSize: MainAxisSize.max,
             children: [
               Padding(
-                padding: const EdgeInsets.all(10.0),
+                padding: const EdgeInsets.fromLTRB(16.0, 10.0, 10.0, 10.0),
                 child: icon,
               ),
-              _textContainer(
-                text: title,
-                horizontalPadding: 0.0,
-                verticalPadding: 0.0,
+              Text(
+                title,
+                style: taskTitleStyle,
               ),
               const Spacer(),
               info,
             ],
           ),
         )
-    ),
-  );
-}
-
-Widget _textContainer({
-  required String text,
-  Color ? color,
-  double ? fontSize,
-  double ? horizontalPadding,
-  double ? verticalPadding,
-}){
-  return Padding(
-    padding: EdgeInsets.symmetric(horizontal: horizontalPadding ?? 20.0, vertical: verticalPadding ?? 20.0),
-    child: Text(
-      text,
-      style: TextStyle(
-        color: color ?? black,
-        fontSize: fontSize ?? 16,
-      ),
     ),
   );
 }
@@ -694,7 +761,10 @@ Widget _infoSetUp({
       padding: const EdgeInsets.all(10.0),
       child: Row(
         children: [
-          _textContainer(text: text, horizontalPadding: 0.0, verticalPadding: 0.0),
+          Text(
+            text,
+            style: taskInfoStyle,
+          ),
           const SizedBox(width: 5),
           Transform.scale(scaleY: 1.0, scaleX: 0.8, child:icon),
         ],
@@ -707,7 +777,7 @@ Widget _infoSetUp({
 Widget _buildMultipleContainer({
   required BuildContext context,
   required List<Widget> icons,
-  required List<String> title,
+  required List<Widget> title,
   required List<Widget> info,
   required List<VoidCallback> onTap,
 }) {
@@ -732,7 +802,7 @@ Widget _buildMultipleContainer({
 
 List<Widget> _buildMultipleRow(
   List<Widget> icons,
-  List<String> title,
+  List<Widget> title,
   List<Widget> info,
   List<VoidCallback> onTap,
 ) {
@@ -746,14 +816,10 @@ List<Widget> _buildMultipleRow(
           mainAxisSize: MainAxisSize.max,
           children: [
             Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.fromLTRB(16.0, 10.0, 10.0, 10.0),
               child: icons[i],
             ),
-            _textContainer(
-              text: title[i],
-              horizontalPadding: 0.0,
-              verticalPadding: 0.0,
-            ),
+            title[i],
             const Spacer(),
             info[i],
           ],

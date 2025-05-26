@@ -12,15 +12,25 @@ import '../constants/tasks_constants.dart';
 
 class TaskDetailsPage extends StatefulWidget {
   final int? taskIndex;
+  final int? subTaskIndex;
+  final bool isSubTask;
 
-  const TaskDetailsPage({super.key, this.taskIndex});
+  const TaskDetailsPage({super.key, this.taskIndex, this.subTaskIndex, this.isSubTask = false});
 
   @override
   State<TaskDetailsPage> createState() => _TaskDetailsPageState();
 }
 
 class _TaskDetailsPageState extends State<TaskDetailsPage> {
+  // Todo Task or Subtask
+  late dynamic _currentItem;
 
+  // PageController for the page view
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  final List<String> _contentType = ['Info', 'Subtasks'];
+
+  // Controllers for the text fields
   late TextEditingController _titleController;
   late TextEditingController _subtitleController;
 
@@ -38,9 +48,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   String selectedRepeat = tasksRepeat[0];
   late TextEditingController _repeatController;
 
-
   late TextEditingController tagsController;
-  late Todo _currentTodo;
 
   // Global Keys
   final GlobalKey _priorityKey = GlobalKey();
@@ -52,28 +60,49 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   @override
   void initState() {
     super.initState();
-    if(widget.taskIndex != null){
-      _currentTodo = context.read<TodoBloc>().state.todos[widget.taskIndex!];
-    } else {
-      _currentTodo = Todo(
-        title: '', 
-        subtitle: '', 
-        isDone: false, 
-        priority: 'None', 
-        deadline: ['', ''], 
-        remind: tasksReminder[0], 
-        repeat: tasksRepeat[0],
-        tags: [],
-      );
+    if(widget.isSubTask){
+      if(widget.taskIndex != null && widget.subTaskIndex != null){
+        // Editing existing subtask
+        _currentItem = context.read<TodoBloc>().state.todos[widget.taskIndex!].subtasks[widget.subTaskIndex!];
+      }else{
+        // Creating new subtask
+        _currentItem = SubTask(
+          title: '', 
+          subtitle: '', 
+          isDone: false, 
+          priority: 'None', 
+          deadline: ['', ''], 
+          remind: tasksReminder[0], 
+          repeat: tasksRepeat[0],
+        );
+      }
+    }else{
+      // Handle existing Todo task
+      if(widget.taskIndex != null){
+        _currentItem = context.read<TodoBloc>().state.todos[widget.taskIndex!];
+      } else {
+        _currentItem = Todo(
+          title: '', 
+          subtitle: '', 
+          isDone: false, 
+          priority: 'None', 
+          deadline: ['', ''], 
+          remind: tasksReminder[0], 
+          repeat: tasksRepeat[0],
+          tags: [],
+        );
+      }
     }
     
-    _titleController = TextEditingController(text: _currentTodo.title);
-    _subtitleController = TextEditingController(text: _currentTodo.subtitle);
-    _priorityController = TextEditingController(text: _currentTodo.priority);
+    
+    
+    _titleController = TextEditingController(text: _currentItem.title);
+    _subtitleController = TextEditingController(text: _currentItem.subtitle);
+    _priorityController = TextEditingController(text: _currentItem.priority);
     
     selectedPriority = _priorityController.text;
-    String dateText = _currentTodo.deadline[0];
-    String timeText = _currentTodo.deadline[1];
+    String dateText = _currentItem.deadline[0];
+    String timeText = _currentItem.deadline[1];
     
     // Check if the date field contains time information (looking for space followed by digits and colon)
     if (dateText.contains(RegExp(r'\s\d+:'))) {
@@ -85,11 +114,11 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       }
     }
     
-    _deadlineDateController = TextEditingController(text: _currentTodo.deadline[0]);
-    _deadlineTimeController = TextEditingController(text: _currentTodo.deadline[1]);
-    _remindController = TextEditingController(text: _currentTodo.remind);
-    _repeatController = TextEditingController(text: _currentTodo.repeat);
-    tagsController = TextEditingController(text: _currentTodo.tags.join(', '));
+    _deadlineDateController = TextEditingController(text: _currentItem.deadline[0]);
+    _deadlineTimeController = TextEditingController(text: _currentItem.deadline[1]);
+    _remindController = TextEditingController(text: _currentItem.remind);
+    _repeatController = TextEditingController(text: _currentItem.repeat);
+    tagsController = TextEditingController(text: _currentItem.tags.join(', '));
     
     // Initialize picked states based on parsed data
     _isDatePicked = dateText.isNotEmpty;
@@ -100,6 +129,8 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
   @override
   void dispose() {
+    _pageController.dispose();
+
     _titleController.dispose();
     _subtitleController.dispose();
     _priorityController.dispose();
@@ -107,8 +138,18 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _deadlineTimeController.dispose();
     _remindController.dispose();
     _repeatController.dispose();
-    tagsController.dispose();
+
+    if(!widget.isSubTask){
+      tagsController.dispose();
+    }
+    
     super.dispose();
+  }
+
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentPage = index % _contentType.length;
+    });
   }
 
   // Method to handle date picking
@@ -199,13 +240,13 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       }
     } else {
       // Existing tasks
-      final hasChanges = _titleController.text != _currentTodo.title ||
-        _subtitleController.text != _currentTodo.subtitle ||
-        _priorityController.text != _currentTodo.priority ||
-        _deadlineDateController.text != _currentTodo.deadline[0] ||
-        _deadlineTimeController.text != _currentTodo.deadline[1] ||
-        _remindController.text != _currentTodo.remind ||
-        _repeatController.text != _currentTodo.repeat;
+      final hasChanges = _titleController.text != _currentItem.title ||
+        _subtitleController.text != _currentItem.subtitle ||
+        _priorityController.text != _currentItem.priority ||
+        _deadlineDateController.text != _currentItem.deadline[0] ||
+        _deadlineTimeController.text != _currentItem.deadline[1] ||
+        _remindController.text != _currentItem.remind ||
+        _repeatController.text != _currentItem.repeat;
 
       if (!hasChanges) {
         Navigator.of(context).pop();
@@ -288,233 +329,77 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            return Container(
-              color: backgoundGrey,
-              child: SizedBox.expand(
-                child: SingleChildScrollView(
+            return Column(
+              children: [
+
+                // TITLE SECTION
+                Container(
+                  color: backgoundGrey,
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 14.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children:[
-                        // TITLE SECTION
-                        _buildTextField(
-                          controllers: [_titleController, _subtitleController], 
-                          hints: ["Title", "Description"]
-                        ),
-                        
-                        // DATE SECTION
-                        _buildContainer(
-                          context: context,
-                          icons: [
-                            _iconSetUp(
-                              icon: Icon(CupertinoIcons.calendar,),
-                              backgroundColor: red,
-                            ),
-                            _iconSetUp(
-                              icon: Icon(CupertinoIcons.clock,),
-                              backgroundColor: blue,
-                            ),
-                          ],
-                          title: [
-                            Container(
-                              alignment: Alignment.centerLeft,
-                              child: _isDatePicked 
-                                ? Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text("Date", style: taskTitleStyle),
-                                      if(_isDatePicked) ...[
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _deadlineDateController.text,
-                                          style: taskInfoStyle.copyWith(
-                                            color: blue,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ) 
-                                : Text("Date", style: taskTitleStyle)
-                            ),
-                            Container(
-                              alignment: Alignment.centerLeft,
-                              child: _isTimePicked
-                                ?  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text("Time", style: taskTitleStyle),
-                                      if(_isDatePicked) ...[
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _deadlineTimeController.text,
-                                          style: taskInfoStyle.copyWith(
-                                            color: blue,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  )
-                                : Text("Time", style: taskTitleStyle),
-                            ),
-                          ],
-                          info: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Switch(
-                                value: _isDatePicked,
-                                // activeColor: green,
-                                // inactiveThumbColor: grey,
-                                onChanged: (value) async {
-                                  if (value) {
-                                    await _pickDate(context);
-                                  }else{
-                                    setState(() {
-                                      _isDatePicked = false;
-                                      _isTimePicked = false;
-                                      _deadlineDateController.clear();
-                                      _deadlineTimeController.clear();
-                                    });
-                                  }
-                                  
-                                },
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Switch(
-                                value: _isTimePicked,
-                                onChanged: _isDatePicked
-                                  ? (value) async{
-                                      if(value) {
-                                        await _pickTime(context);
-                                      }else{
-                                        setState(() {
-                                          _isTimePicked = false;
-                                          _deadlineTimeController.clear();
-                                        });
-                                      }
-                                    }
-                                  : null,
-                              ),
-                            ),
-                          ],
-                          onTap: [
-                            () => _isDatePicked ? _pickDate(context) : null,
-                            () => _isTimePicked ? _pickTime(context) : null,
-                          ],
-                        ),
-                        
-                        // PRIORITY SECTION
-                        _buildContainer(
-                          context: context,
-                          icons: [
-                            _iconSetUp(
-                              icon: Icon(
-                                CupertinoIcons.exclamationmark,
-                                size: 28
-                              ),
-                              backgroundColor: red,
-                            ),
-                          ],
-                          title: [Text("Priority", style: taskTitleStyle)],
-                          info: [
-                            _infoSetUp(
-                              key: _priorityKey,
-                              text: _priorityController.text,
-                              icon: Icon(
-                                CupertinoIcons.chevron_up_chevron_down,
-                                size: 20,
-                              ),
-                            ),
-                          ],
-                          onTap: [
-                            (){ 
-                              final RenderBox buttonBox = _priorityKey.currentContext!.findRenderObject() as RenderBox;
-                              _showPopupOptions(
-                                context: context, 
-                                options: tasksPriority,
-                                buttonBox: buttonBox,
-                              ); 
-                            },
-                          ],
-                        ),
-
-                        // REMIND & REPEAT SECTION
-                        _buildContainer(
-                          context: context, 
-                          icons: [
-                            _iconSetUp(
-                              icon: Icon(CupertinoIcons.bell),
-                              backgroundColor: purple,
-                            ),
-                            _iconSetUp(
-                              icon: Icon(CupertinoIcons.repeat),
-                              backgroundColor: grey,
-                            ),
-                          ], 
-                          title: [
-                            Text("Remind", style: taskTitleStyle,),
-                            Text("Repeat",style: taskTitleStyle,),
-                          ], 
-                          info: [
-                            _infoSetUp(
-                              key: _reminderKey,
-                              text: _remindController.text,
-                              icon: Icon(
-                                CupertinoIcons.chevron_up_chevron_down,
-                                size: 20,
-                              ),
-                            ),
-                            _infoSetUp(
-                              key: _repeatKey,
-                              text: _repeatController.text, 
-                              icon: Icon(
-                                CupertinoIcons.chevron_up_chevron_down,
-                                size: 20,
-                              ),
-                            ),
-                          ],
-                          onTap: [
-                            (){ 
-                              final RenderBox buttonBox = _reminderKey.currentContext!.findRenderObject() as RenderBox;
-                              _showPopupOptions(
-                                context: context, 
-                                options: tasksReminder,
-                                buttonBox: buttonBox,
-                              ); 
-                            },
-                            (){ 
-                              final RenderBox buttonBox = _repeatKey.currentContext!.findRenderObject() as RenderBox;
-                              _showPopupOptions(
-                                context: context, 
-                                options: tasksRepeat,
-                                buttonBox: buttonBox,
-                              ); 
-                            },
-                          ],
-                        ),
-                      
-                        // TAGS SECTION
-                        _buildContainer(
-                          context: context,
-                          icons: [_iconSetUp(icon: Icon(CupertinoIcons.number,), backgroundColor: greyDark), ],
-                          title: [Text("Tags", style: taskTitleStyle,)], 
-                          info: [
-                            _infoSetUp(
-                              icon: Icon(CupertinoIcons.chevron_right,),
-                            ),
-                          ],
-                          onTap: [() =>  _tagPicker(context, tagsController, _currentTodo.tags),],
-                        ),
-
-                        // TODO: SUBTASKS SECTION
-
-                      ],
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
+                    child: _buildTextField(
+                      controllers: [_titleController, _subtitleController], 
+                      hints: ["Title", "Description"]
                     ),
                   ),
                 ),
-              ),
+                
+                if(widget.isSubTask)
+                  Expanded(
+                    child:_buildInfoContent()
+                  )
+                else ...[
+                  // State Header Bar
+                  SizedBox(
+                    height: 50,
+                    child: Row(
+                      children: _contentType.asMap().entries.map((entry) {
+                        int index = entry.key;
+                        String title = entry.value;
+                        bool isActive = index == _currentPage;
+
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: (){
+                              _pageController.animateToPage(
+                                index, 
+                                duration: const Duration(milliseconds: 300), 
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                            child: Container(
+                              height: double.infinity,
+                              decoration: BoxDecoration(
+                                color: isActive ? bgBlue : white,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  title,
+                                  style: taskHeaderStyle.copyWith(
+                                    color: isActive ? white : black,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  // Main Content Section
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: _onPageChanged,
+                      itemBuilder: (context, index) {
+                        int actualIndex = index % _contentType.length;
+                        return _buildContent(actualIndex);
+                      },
+                    ),
+                  ),
+                ],
+              ],
             );
           }
         )
@@ -530,7 +415,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text("Missing Title"),
-            content: const Text("Please enter a title for the task before saving."),
+            content: !widget.isSubTask 
+              ? const Text("Please enter a title for the task before saving.")
+              : const Text("Please enter a title for the subtask before saving."),
             actions: [
               TextButton(
                 child: const Text("OK"),
@@ -544,19 +431,46 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       );
       return;
     }
-    final updatedTodo = _currentTodo.copyWith(
-      title: _titleController.text,
-      subtitle: _subtitleController.text,
-      priority: _priorityController.text,
-      deadline: [_deadlineDateController.text, _deadlineTimeController.text],
-      remind: _remindController.text,
-      repeat: _repeatController.text,
-    );
     
-    if(widget.taskIndex != null){
-      context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex!, updatedTodo));
+    if(widget.isSubTask){
+      // Subtask saving logic
+      final updatedSubTask = (_currentItem as SubTask).copyWith(
+        title: _titleController.text,
+        subtitle: _subtitleController.text,
+        priority: _priorityController.text,
+        deadline: [_deadlineDateController.text, _deadlineTimeController.text],
+        remind: _remindController.text,
+        repeat: _repeatController.text,
+      );
+
+      if(widget.subTaskIndex != null){
+        // Update existing subtask
+        context.read<TodoBloc>().add(UpdateSubTask(
+          widget.taskIndex!,
+          widget.subTaskIndex!,
+          updatedSubTask,
+        )
+      );
+      }else{
+        // Add new subtask
+        context.read<TodoBloc>().add(AddSubTask(widget.taskIndex!,updatedSubTask));
+      }
     }else{
-      context.read<TodoBloc>().add(AddTodo(updatedTodo));
+      // Todo task saving logic
+      final updatedTodo = (_currentItem as Todo).copyWith(
+        title: _titleController.text,
+        subtitle: _subtitleController.text,
+        priority: _priorityController.text,
+        deadline: [_deadlineDateController.text, _deadlineTimeController.text],
+        remind: _remindController.text,
+        repeat: _repeatController.text,
+      );
+    
+      if(widget.taskIndex != null){
+        context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex!, updatedTodo));
+      }else{
+        context.read<TodoBloc>().add(AddTodo(updatedTodo));
+      }
     }
     
     // Navigate back
@@ -670,7 +584,246 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       )
     );
   }
+
+  Widget _buildContent(int index){
+    switch(index){
+      case 0:
+        return _buildInfoContent();
+      case 1:
+        return _buildSubtasksContent();
+      default:
+        return _buildInfoContent();
+    }
+  }
+
+  Widget _buildInfoContent(){
+    return Container(
+      color: backgoundGrey,
+      child: SizedBox.expand(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 14.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:[
+              
+              // DATE SECTION
+              _buildContainer(
+                context: context,
+                icons: [
+                  _iconSetUp(
+                    icon: Icon(CupertinoIcons.calendar,),
+                    backgroundColor: red,
+                  ),
+                  _iconSetUp(
+                    icon: Icon(CupertinoIcons.clock,),
+                    backgroundColor: blue,
+                  ),
+                ],
+                title: [
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: _isDatePicked 
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Date", style: taskTitleStyle),
+                            if(_isDatePicked) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                _deadlineDateController.text,
+                                style: taskInfoStyle.copyWith(
+                                  color: blue,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ) 
+                      : Text("Date", style: taskTitleStyle)
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: _isTimePicked
+                      ?  Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Time", style: taskTitleStyle),
+                            if(_isDatePicked) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                _deadlineTimeController.text,
+                                style: taskInfoStyle.copyWith(
+                                  color: blue,
+                                ),
+                              ),
+                            ],
+                          ],
+                        )
+                      : Text("Time", style: taskTitleStyle),
+                  ),
+                ],
+                info: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Switch(
+                      value: _isDatePicked,
+                      // activeColor: green,
+                      // inactiveThumbColor: grey,
+                      onChanged: (value) async {
+                        if (value) {
+                          await _pickDate(context);
+                        }else{
+                          setState(() {
+                            _isDatePicked = false;
+                            _isTimePicked = false;
+                            _deadlineDateController.clear();
+                            _deadlineTimeController.clear();
+                          });
+                        }
+                        
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Switch(
+                      value: _isTimePicked,
+                      onChanged: _isDatePicked
+                        ? (value) async{
+                            if(value) {
+                              await _pickTime(context);
+                            }else{
+                              setState(() {
+                                _isTimePicked = false;
+                                _deadlineTimeController.clear();
+                              });
+                            }
+                          }
+                        : null,
+                    ),
+                  ),
+                ],
+                onTap: [
+                  () => _isDatePicked ? _pickDate(context) : null,
+                  () => _isTimePicked ? _pickTime(context) : null,
+                ],
+              ),
+              
+              // PRIORITY SECTION
+              _buildContainer(
+                context: context,
+                icons: [
+                  _iconSetUp(
+                    icon: Icon(
+                      CupertinoIcons.exclamationmark,
+                      size: 28
+                    ),
+                    backgroundColor: red,
+                  ),
+                ],
+                title: [Text("Priority", style: taskTitleStyle)],
+                info: [
+                  _infoSetUp(
+                    key: _priorityKey,
+                    text: _priorityController.text,
+                    icon: Icon(
+                      CupertinoIcons.chevron_up_chevron_down,
+                      size: 20,
+                    ),
+                  ),
+                ],
+                onTap: [
+                  (){ 
+                    final RenderBox buttonBox = _priorityKey.currentContext!.findRenderObject() as RenderBox;
+                    _showPopupOptions(
+                      context: context, 
+                      options: tasksPriority,
+                      buttonBox: buttonBox,
+                    ); 
+                  },
+                ],
+              ),
+            
+              // REMIND & REPEAT SECTION
+              _buildContainer(
+                context: context, 
+                icons: [
+                  _iconSetUp(
+                    icon: Icon(CupertinoIcons.bell),
+                    backgroundColor: purple,
+                  ),
+                  _iconSetUp(
+                    icon: Icon(CupertinoIcons.repeat),
+                    backgroundColor: grey,
+                  ),
+                ], 
+                title: [
+                  Text("Remind", style: taskTitleStyle,),
+                  Text("Repeat",style: taskTitleStyle,),
+                ], 
+                info: [
+                  _infoSetUp(
+                    key: _reminderKey,
+                    text: _remindController.text,
+                    icon: Icon(
+                      CupertinoIcons.chevron_up_chevron_down,
+                      size: 20,
+                    ),
+                  ),
+                  _infoSetUp(
+                    key: _repeatKey,
+                    text: _repeatController.text, 
+                    icon: Icon(
+                      CupertinoIcons.chevron_up_chevron_down,
+                      size: 20,
+                    ),
+                  ),
+                ],
+                onTap: [
+                  (){ 
+                    final RenderBox buttonBox = _reminderKey.currentContext!.findRenderObject() as RenderBox;
+                    _showPopupOptions(
+                      context: context, 
+                      options: tasksReminder,
+                      buttonBox: buttonBox,
+                    ); 
+                  },
+                  (){ 
+                    final RenderBox buttonBox = _repeatKey.currentContext!.findRenderObject() as RenderBox;
+                    _showPopupOptions(
+                      context: context, 
+                      options: tasksRepeat,
+                      buttonBox: buttonBox,
+                    ); 
+                  },
+                ],
+              ),
+            
+              if(!widget.isSubTask) ...[
+                // TAGS SECTION
+                _buildContainer(
+                  context: context,
+                  icons: [_iconSetUp(icon: Icon(CupertinoIcons.number,), backgroundColor: greyDark), ],
+                  title: [Text("Tags", style: taskTitleStyle,)], 
+                  info: [
+                    _infoSetUp(
+                      icon: Icon(CupertinoIcons.chevron_right,),
+                    ),
+                  ],
+                  onTap: [() =>  _tagPicker(context, tagsController, _currentItem.tags),],
+                ),
+              ]
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubtasksContent(){
+  return Container();    
+  }
 }
+
 
 Widget _iconSetUp({
   required Icon icon,

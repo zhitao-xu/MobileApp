@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_application_1/data/tag.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_application_1/widget/navigator_app_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,30 +20,33 @@ class TaskDetailsPage extends StatefulWidget {
 }
 
 class _TaskDetailsPageState extends State<TaskDetailsPage> {
+
   late TextEditingController _titleController;
   late TextEditingController _subtitleController;
-  DateTime selectedDeadline = DateTime.now().add(const Duration(hours:2));
-  
-  // bool hasDeadline = false;
-  String selectedPriority = tasksPriority[0];
-  String selectedReminder = tasksReminder[0];
-  String selectedRepeat = tasksRepeat[0];
 
-  late TextEditingController _priorityController;
+  DateTime selectedDeadline = DateTime.now().add(const Duration(hours:2));
   late TextEditingController _deadlineDateController;
   late TextEditingController _deadlineTimeController;
-  late TextEditingController _remindController;
-  late TextEditingController _repeatController;
-  late Todo _currentTodo;
-
-  // Track if date and time are picked for UI display
   bool _isDatePicked = false;
   bool _isTimePicked = false;
+  
+  String selectedPriority = tasksPriority[0];
+  late TextEditingController _priorityController;
+
+  String selectedReminder = tasksReminder[0];
+  late TextEditingController _remindController;
+  String selectedRepeat = tasksRepeat[0];
+  late TextEditingController _repeatController;
+
+
+  late TextEditingController tagsController;
+  late Todo _currentTodo;
 
   // Global Keys
   final GlobalKey _priorityKey = GlobalKey();
   final GlobalKey _reminderKey = GlobalKey();
   final GlobalKey _repeatKey = GlobalKey();
+  List<String> selectedTags = [];
   
 
   @override
@@ -51,14 +55,16 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     if(widget.taskIndex != null){
       _currentTodo = context.read<TodoBloc>().state.todos[widget.taskIndex!];
     } else {
-      _currentTodo = Todo
-        (title: '', 
+      _currentTodo = Todo(
+        title: '', 
         subtitle: '', 
         isDone: false, 
         priority: 'None', 
         deadline: ['', ''], 
         remind: tasksReminder[0], 
-        repeat: tasksRepeat[0]);
+        repeat: tasksRepeat[0],
+        tags: [],
+      );
     }
     
     _titleController = TextEditingController(text: _currentTodo.title);
@@ -83,6 +89,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _deadlineTimeController = TextEditingController(text: _currentTodo.deadline[1]);
     _remindController = TextEditingController(text: _currentTodo.remind);
     _repeatController = TextEditingController(text: _currentTodo.repeat);
+    tagsController = TextEditingController(text: _currentTodo.tags.join(', '));
     
     // Initialize picked states based on parsed data
     _isDatePicked = dateText.isNotEmpty;
@@ -100,6 +107,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _deadlineTimeController.dispose();
     _remindController.dispose();
     _repeatController.dispose();
+    tagsController.dispose();
     super.dispose();
   }
 
@@ -114,7 +122,8 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
     if (selectedDate != null) {
       // Format date as day-month-year
-      final formattedDate = "${selectedDate.day}-${selectedDate.month}-${selectedDate.year}";
+      final formattedDate = 
+        "${selectedDate.day.toString().padLeft(2, '0')}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.year}";
       setState(() {
         _deadlineDateController.text = formattedDate;
         _isDatePicked = true;
@@ -293,6 +302,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                           controllers: [_titleController, _subtitleController], 
                           hints: ["Title", "Description"]
                         ),
+                        
                         // DATE SECTION
                         _buildMultipleContainer(
                           context: context,
@@ -353,6 +363,8 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                               padding: const EdgeInsets.symmetric(horizontal: 16.0),
                               child: Switch(
                                 value: _isDatePicked,
+                                // activeColor: green,
+                                // inactiveThumbColor: grey,
                                 onChanged: (value) async {
                                   if (value) {
                                     await _pickDate(context);
@@ -392,7 +404,6 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                             () => _isTimePicked ? _pickTime(context) : null,
                           ],
                         ),
-
                         
                         // PRIORITY SECTION
                         _buildSingleContainer(
@@ -476,6 +487,19 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                             },
                           ],
                         ),
+                      
+                        // TAGS SECTION
+                        _buildSingleContainer(
+                          icon: _iconSetUp(icon: Icon(CupertinoIcons.number,), backgroundColor: greyDark), 
+                          title: "Tags", 
+                          info: _infoSetUp(
+                            icon: Icon(CupertinoIcons.chevron_right,),
+                          ),
+                          onTap: () =>  _tagPicker(context, tagsController, _currentTodo.tags),
+                        ),
+
+                        // TODO: SUBTASKS SECTION
+
                       ],
                     ),
                   ),
@@ -489,7 +513,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   }
 
   // Method to save the task
-  void _saveTask() {
+  void _saveTask() async{
     if (_titleController.text.trim().isEmpty) {
       showDialog(
         context: context,
@@ -638,7 +662,6 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   }
 }
 
-
 Widget _iconSetUp({
   required Icon icon,
   required Color backgroundColor,
@@ -751,9 +774,9 @@ Widget _buildSingleContainer({
 
 Widget _infoSetUp({
   Key? key,
-  required String text,
+  String? text,
   required Icon icon,
-}){
+}) {
   return Container(
     key: key,
     padding: const EdgeInsets.all(6.0),
@@ -761,17 +784,23 @@ Widget _infoSetUp({
       padding: const EdgeInsets.all(10.0),
       child: Row(
         children: [
-          Text(
-            text,
-            style: taskInfoStyle,
-          ),
-          const SizedBox(width: 5),
-          Transform.scale(scaleY: 1.0, scaleX: 0.8, child:icon),
+          if (text != null && text.isNotEmpty)
+            Row(
+              children: [
+                Text(
+                  text,
+                  style: taskInfoStyle,
+                ),
+                const SizedBox(width: 5),
+              ],
+            ),
+          Transform.scale(scaleY: 1.0, scaleX: 0.8, child: icon),
         ],
       ),
     ),
   );
 }
+
 
 // Multiple Containers
 Widget _buildMultipleContainer({
@@ -831,4 +860,243 @@ List<Widget> _buildMultipleRow(
     }
   }
   return rows;
+}
+
+void _tagPicker(BuildContext context, TextEditingController tagsController, List<String> selectedTags) {
+  TextEditingController newTagController = TextEditingController();
+
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (context) => StatefulBuilder(
+      builder: (context, setDialogState) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.85,
+          height: MediaQuery.of(context).size.height * 0.7,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              // Title with close button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Tags',
+                    style: homeTitleStyle.copyWith(color: black),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(CupertinoIcons.xmark),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 8),
+              // Divider
+              Container(
+                height: 1,
+                color: grey,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+              ),
+
+              // Tags list section
+              Expanded(
+                child: FutureBuilder<List<String>>(
+                  future: TagStorage.loadTags(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    
+                    final tags = snapshot.data ?? [];
+                    
+                    if (tags.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No tags available',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: greyDark,
+                            fontSize: 16,
+                          ),
+                        ),
+                      );
+                    }
+                    
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(8),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: tags.map((tag) {
+                          final isSelected = selectedTags.contains(tag);
+                          
+                          return GestureDetector(
+                            onTap: () {
+                              setDialogState(() {
+                                if (isSelected) {
+                                  selectedTags.remove(tag);
+                                } else {
+                                  selectedTags.add(tag);
+                                }
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected ? bgBlue : white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isSelected ? blue : grey,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    tag,
+                                    style: TextStyle(
+                                      color: isSelected ? blue : black,
+                                      fontSize: 16,
+                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                    ),
+                                  ),
+                                  if (isSelected) ...[
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.check_circle,
+                                      size: 16,
+                                      color: blue,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Divider
+              Container(
+                height: 1,
+                color: grey,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+              ),
+              
+              // Add new tag section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Add New Tag',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: newTagController,
+                          decoration: InputDecoration(
+                            hintText: 'Enter tag name',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          onSubmitted: (value) async {
+                            if (value.trim().isNotEmpty) {
+                              await _addNewTag(value.trim());
+                              newTagController.clear();
+                              setDialogState(() {}); // Refresh the dialog
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final tagName = newTagController.text.trim();
+                          if (tagName.isNotEmpty) {
+                            await _addNewTag(tagName);
+                            newTagController.clear();
+                            setDialogState(() {}); // Refresh the dialog
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                        ),
+                        child: const Text('Add'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Action buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Update the tags field with selected tags
+                        tagsController.text = selectedTags.join(', ');
+                        Navigator.pop(context);
+                        _updateCurrentTaskTags(selectedTags);
+                      },
+                      child: const Text('Save'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+Future<void> _addNewTag(String tagName) async {
+  await TagStorage.addTags([tagName]);
+}
+
+// Add this function to update the current task's tags
+void _updateCurrentTaskTags(List<String> selectedTags) async{
+  // You'll need to implement this based on your task management structure
+  // For example, if you have a current task object:
+  await TagStorage.addTags(selectedTags);
+
+  print('Updated task tags: $selectedTags');
 }

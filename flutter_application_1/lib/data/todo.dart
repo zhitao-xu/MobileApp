@@ -102,6 +102,7 @@ class Todo {
     List<String>? deadline,
     String? remind,
     String? repeat,
+    List<String>? tags,
     List<SubTask>? subtasks,
   }) {
     return Todo(
@@ -113,7 +114,7 @@ class Todo {
       deadline: deadline ?? this.deadline,
       remind: remind ?? this.remind,
       repeat: repeat ?? this.repeat,
-      tags: tags,
+      tags: tags ?? this.tags,
       subtasks: subtasks ?? this.subtasks,
     );
   }

@@ -801,7 +801,6 @@ Widget _infoSetUp({
   );
 }
 
-
 // Multiple Containers
 Widget _buildMultipleContainer({
   required BuildContext context,
@@ -1094,9 +1093,7 @@ Future<void> _addNewTag(String tagName) async {
 
 // Add this function to update the current task's tags
 void _updateCurrentTaskTags(List<String> selectedTags) async{
-  // You'll need to implement this based on your task management structure
-  // For example, if you have a current task object:
   await TagStorage.addTags(selectedTags);
 
-  print('Updated task tags: $selectedTags');
+  // print('Updated task tags: $selectedTags');
 }

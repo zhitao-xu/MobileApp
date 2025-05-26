@@ -1,5 +1,13 @@
+import 'dart:io';
+import 'dart:convert';
+import 'package:path_provider/path_provider.dart';
+
 class TagStorage {
-  static List<String> _tags = [
+  static List<String> _tags = [];
+  static bool _isInitialized = false;
+  static const String _fileName = 'tags.json';
+  
+  static final List<String> _defaultTags = [
     'Work',
     'Personal',
     'Urgent',
@@ -7,24 +15,66 @@ class TagStorage {
     'Health',
   ];
 
-  // Load tags from memory
+  // Initialize storage
+  static Future<void> _initialize() async {
+    if (_isInitialized) return;
+    
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/$_fileName');
+      
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        final List<dynamic> jsonList = json.decode(content);
+        _tags = jsonList.cast<String>();
+      } else {
+        _tags = List.from(_defaultTags);
+        await _saveToFile(); // Save default tags
+      }
+    } catch (e) {
+      print('Error initializing tags: $e');
+      _tags = List.from(_defaultTags);
+    }
+    
+    _isInitialized = true;
+  }
+
+  // Save to file in background
+  static Future<void> _saveToFile() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/$_fileName');
+      await file.writeAsString(json.encode(_tags));
+    } catch (e) {
+      print('Error saving to file: $e');
+    }
+  }
+
+  // Load tags
   static Future<List<String>> loadTags() async {
-    // Simulate async operation
-    await Future.delayed(const Duration(milliseconds: 100));
+    await _initialize();
     return List.from(_tags);
   }
 
-  // Save tags to memory
+  // Save tags
   static Future<void> saveTags(List<String> tags) async {
-    // Simulate async operation
-    await Future.delayed(const Duration(milliseconds: 50));
+    await _initialize();
     _tags = List.from(tags);
+    await _saveToFile(); // Save to file in background
   }
 
   // Add new tags (automatically avoids duplicates)
   static Future<void> addTags(List<String> newTags) async {
-    final currentTags = await loadTags();
-    final updatedTags = {...currentTags, ...newTags}.toList(); // merge and deduplicate
-    await saveTags(updatedTags);
+    await _initialize();
+    final updatedTags = {..._tags, ...newTags}.toList();
+    _tags = updatedTags;
+    await _saveToFile(); // Save to file in background
+  }
+
+  // Remove a tag
+  static Future<void> removeTag(String tag) async {
+    await _initialize();
+    _tags.remove(tag);
+    await _saveToFile(); // Save to file in background
   }
 }

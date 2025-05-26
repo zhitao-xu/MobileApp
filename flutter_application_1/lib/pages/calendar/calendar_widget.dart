@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/utils/todo_sorter.dart';
+import 'package:flutter_application_1/utils/todo_utils.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart'; // For date formatting
 import 'package:flutter_application_1/data/todo.dart';
 import 'package:flutter_application_1/utils/calendar_utils.dart';
 import 'package:flutter_application_1/utils/theme.dart';
@@ -20,7 +19,7 @@ class CalendarWidget extends StatefulWidget {
 }
 
 class _CalendarWidgetState extends State<CalendarWidget> {
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  final CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = kToday;
   DateTime? _selectedDay; // Day currently selected by the user
   List<Todo> _selectedDayTasks = [];
@@ -52,36 +51,14 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   // Helper to get tasks for a given day
   List<Todo> _getTasksForDay(DateTime day) {
     return widget.tasks.where((todo) {
-      // 1. Check if the deadline string is not empty
-      if (todo.deadline.isEmpty) {
-        return false;
-      }
+    // Use the centralized parsing function
+    DateTime? parsedDeadline = parseTodoDeadline(todo.deadline);
 
-      // 2. Attempt to parse the deadline string into a DateTime object
-      // Use tryParse for safety, as parsing might fail if the string format is wrong.
-      DateTime? parsedDeadline;
-      try { 
-        // TODO: todo.deadline is a List<String> in the format ["DD-MM-YYYY", "HH:MM"]
-        // Option A: If your string is ISO 8601 (e.g., "2025-05-20T10:30:00.000Z")
-        // parsedDeadline = DateTime.tryParse(todo.deadline);
-        // Option B: If your string is in a custom format, use DateFormat
-        // parsedDeadline = _deadlineInputFormatter.parseStrict(todo.deadline);
-        // Using parseStrict will throw an error if format doesn't match precisely.
-        // It's often safer to wrap in a try-catch, or ensure the input is always clean.
-      } catch (e) {
-        // Handle parsing error, e.g., print error and return false for this todo
-        if (kDebugMode) {
-          print('Error parsing deadline "${todo.deadline}": $e');
-        }
-        return false;
-      }
-
-
-      // 3. If parsing was successful, compare the parsed date with the calendar day
-      return parsedDeadline != null &&
-             parsedDeadline.year == day.year &&
-             parsedDeadline.month == day.month &&
-             parsedDeadline.day == day.day;
+    // If parsing was successful, compare the parsed date with the calendar day
+    return parsedDeadline != null &&
+           parsedDeadline.year == day.year &&
+           parsedDeadline.month == day.month &&
+           parsedDeadline.day == day.day;
     }).toList();
   }
 
@@ -216,6 +193,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                       originalIndex: originalIndex, // Pass the index the Bloc expects
                       onDelete: () => _removeTodo(task), // Call the Bloc's RemoveTodo
                       onToggleCompletion: () => _toggleTodoStatus(originalIndex), // Call the Bloc's AlterTodo
+                      showDate: false,
                     );
                     
                   },

@@ -1,14 +1,13 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/widget/todo/todo_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_application_1/widget/custom_app_bar.dart';
 import 'package:flutter_application_1/data/todo.dart';
 import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
 import 'package:flutter_application_1/pages/task_details.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flutter_application_1/utils/todo_sorter.dart';
+import 'package:flutter_application_1/utils/todo_utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -91,8 +90,16 @@ class _HomePageState extends State<HomePage> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
+                    // Directly use TodoCard here
                     ...sortedPendingTodos.map((todo) =>
-                        buildTodoCard(todo, state.todos.indexOf(todo))),
+                        TodoCard(
+                          key: ValueKey(todo.title + todo.date), // Unique key for efficiency
+                          todo: todo,
+                          originalIndex: state.todos.indexOf(todo), // Pass the original index from the main list
+                          onDelete: () => removeTodo(todo),
+                          onToggleCompletion: () => alertTodo(state.todos.indexOf(todo)),
+                        ),
+                    ),
                   ],
                   if (sortedCompletedTodos.isNotEmpty) ...[
                     const Padding(
@@ -103,8 +110,16 @@ class _HomePageState extends State<HomePage> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
+                    // Directly use TodoCard here
                     ...sortedCompletedTodos.map((todo) =>
-                        buildTodoCard(todo, state.todos.indexOf(todo))),
+                        TodoCard(
+                          key: ValueKey(todo.title + todo.date), // Unique key for efficiency
+                          todo: todo,
+                          originalIndex: state.todos.indexOf(todo), // Pass the original index from the main list
+                          onDelete: () => removeTodo(todo),
+                          onToggleCompletion: () => alertTodo(state.todos.indexOf(todo)),
+                        ),
+                    ),
                   ],
                 ],
               );
@@ -118,7 +133,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
+  /*
   Widget buildTodoCard(Todo todo, int originalIndex) {
     final isCompleted = todo.isDone;
 
@@ -218,5 +233,5 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
+  }*/
 }

@@ -37,7 +37,8 @@ class TodoCard extends StatelessWidget {
 
     DateTime? parsedDeadline;
     if (todo.deadline.isNotEmpty) {
-      parsedDeadline = DateTime.tryParse(todo.deadline);
+      //: TODO: todo.deadline is a List<String> in the format ["DD-MM-YYYY", "HH:MM"]
+      // parsedDeadline = DateTime.tryParse(todo.deadline);
     }
 
     return ClipRRect(

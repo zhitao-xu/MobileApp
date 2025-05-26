@@ -71,7 +71,7 @@ Color getPriorityColor(String priorityString) {
     case 'medium':
       return Color.fromARGB(255, 255, 204, 128); // Assume 'orange' is defined in theme.dart
     case 'low':
-      return Colors.white; // Assume 'white' is defined in theme.dart
+      return white; // Assume 'white' is defined in theme.dart
     default:
       return black; // Default color for unknown priority
   }

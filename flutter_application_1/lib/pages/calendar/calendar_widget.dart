@@ -60,11 +60,12 @@ class _CalendarWidgetState extends State<CalendarWidget> {
       // 2. Attempt to parse the deadline string into a DateTime object
       // Use tryParse for safety, as parsing might fail if the string format is wrong.
       DateTime? parsedDeadline;
-      try {
+      try { 
+        // TODO: todo.deadline is a List<String> in the format ["DD-MM-YYYY", "HH:MM"]
         // Option A: If your string is ISO 8601 (e.g., "2025-05-20T10:30:00.000Z")
-        parsedDeadline = DateTime.tryParse(todo.deadline);
+        // parsedDeadline = DateTime.tryParse(todo.deadline);
         // Option B: If your string is in a custom format, use DateFormat
-        //parsedDeadline = _deadlineInputFormatter.parseStrict(todo.deadline);
+        // parsedDeadline = _deadlineInputFormatter.parseStrict(todo.deadline);
         // Using parseStrict will throw an error if format doesn't match precisely.
         // It's often safer to wrap in a try-catch, or ensure the input is always clean.
       } catch (e) {

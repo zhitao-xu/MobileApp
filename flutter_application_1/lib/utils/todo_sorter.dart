@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart'; // Only if you need colors here, otherwise remove
 import 'package:flutter_application_1/data/todo.dart'; // Import your Todo model
-import 'package:flutter_application_1/utils/theme.dart'; // Import your custom colors
 
 // Define the priority order map
 // Lower number means higher priority for sorting (0 is highest)
@@ -8,10 +6,11 @@ const Map<String, int> priorityOrderMap = {
   'high': 0,
   'medium': 1,
   'low': 2,
+  'none': 3,
 };
 
 // Default priority for unknown or missing priority strings
-const String defaultPriority = 'medium';
+const String defaultPriority = 'none';
 
 /// Sorts a list of Todo items by priority (high to low) and then by deadline (closest to furthest).
 List<Todo> sortTodosByPriorityAndDeadline(List<Todo> todos) {
@@ -35,14 +34,14 @@ List<Todo> sortTodosByPriorityAndDeadline(List<Todo> todos) {
 
     try {
       if (a.deadline.isNotEmpty) {
-        deadlineA = DateTime.tryParse(a.deadline);
+        deadlineA = DateTime.tryParse('${a.deadline[0]} ${a.deadline[1]}');
       }
     } catch (e) {
       // Handle parsing error for A if necessary, though tryParse handles most cases
     }
     try {
       if (b.deadline.isNotEmpty) {
-        deadlineB = DateTime.tryParse(b.deadline);
+        deadlineB = DateTime.tryParse('${b.deadline[0]} ${b.deadline[1]}');
       }
     } catch (e) {
       // Handle parsing error for B if necessary

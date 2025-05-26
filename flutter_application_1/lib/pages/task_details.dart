@@ -499,6 +499,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                         ),
 
                         // TODO: SUBTASKS SECTION
+                        // TODO: Use todo_card.dart if you want the same method of display as home_page and calendar widget for tasks.
 
                       ],
                     ),

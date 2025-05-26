@@ -304,7 +304,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                         ),
                         
                         // DATE SECTION
-                        _buildMultipleContainer(
+                        _buildContainer(
                           context: context,
                           icons: [
                             _iconSetUp(
@@ -406,35 +406,42 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                         ),
                         
                         // PRIORITY SECTION
-                        _buildSingleContainer(
-                          icon: _iconSetUp(
-                            icon: Icon(
-                              CupertinoIcons.exclamationmark,
-                              size: 28
+                        _buildContainer(
+                          context: context,
+                          icons: [
+                            _iconSetUp(
+                              icon: Icon(
+                                CupertinoIcons.exclamationmark,
+                                size: 28
+                              ),
+                              backgroundColor: red,
                             ),
-                            backgroundColor: red,
-                          ),
-                          title: "Priority",
-                          info: _infoSetUp(
-                            key: _priorityKey,
-                            text: _priorityController.text,
-                            icon: Icon(
-                              CupertinoIcons.chevron_up_chevron_down,
-                              size: 20,
+                          ],
+                          title: [Text("Priority", style: taskTitleStyle)],
+                          info: [
+                            _infoSetUp(
+                              key: _priorityKey,
+                              text: _priorityController.text,
+                              icon: Icon(
+                                CupertinoIcons.chevron_up_chevron_down,
+                                size: 20,
+                              ),
                             ),
-                          ),
-                          onTap: (){ 
-                            final RenderBox buttonBox = _priorityKey.currentContext!.findRenderObject() as RenderBox;
-                            _showPopupOptions(
-                              context: context, 
-                              options: tasksPriority,
-                              buttonBox: buttonBox,
-                            ); 
-                          },
+                          ],
+                          onTap: [
+                            (){ 
+                              final RenderBox buttonBox = _priorityKey.currentContext!.findRenderObject() as RenderBox;
+                              _showPopupOptions(
+                                context: context, 
+                                options: tasksPriority,
+                                buttonBox: buttonBox,
+                              ); 
+                            },
+                          ],
                         ),
 
                         // REMIND & REPEAT SECTION
-                        _buildMultipleContainer(
+                        _buildContainer(
                           context: context, 
                           icons: [
                             _iconSetUp(
@@ -489,13 +496,16 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                         ),
                       
                         // TAGS SECTION
-                        _buildSingleContainer(
-                          icon: _iconSetUp(icon: Icon(CupertinoIcons.number,), backgroundColor: greyDark), 
-                          title: "Tags", 
-                          info: _infoSetUp(
-                            icon: Icon(CupertinoIcons.chevron_right,),
-                          ),
-                          onTap: () =>  _tagPicker(context, tagsController, _currentTodo.tags),
+                        _buildContainer(
+                          context: context,
+                          icons: [_iconSetUp(icon: Icon(CupertinoIcons.number,), backgroundColor: greyDark), ],
+                          title: [Text("Tags", style: taskTitleStyle,)], 
+                          info: [
+                            _infoSetUp(
+                              icon: Icon(CupertinoIcons.chevron_right,),
+                            ),
+                          ],
+                          onTap: [() =>  _tagPicker(context, tagsController, _currentTodo.tags),],
                         ),
 
                         // TODO: SUBTASKS SECTION
@@ -734,44 +744,6 @@ Divider myDivider() {
   );
 }
 
-// Single Container
-Widget _buildSingleContainer({
-  required Widget icon,
-  required String title,
-  required Widget  info,
-  VoidCallback? onTap,
-}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-    child: Container(
-      padding: const EdgeInsets.all(6.0),
-          decoration: BoxDecoration(
-            color: white,
-            border: Border.all(color: white),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-        child: InkWell(
-          onTap: onTap,
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 10.0, 10.0, 10.0),
-                child: icon,
-              ),
-              Text(
-                title,
-                style: taskTitleStyle,
-              ),
-              const Spacer(),
-              info,
-            ],
-          ),
-        )
-    ),
-  );
-}
-
 Widget _infoSetUp({
   Key? key,
   String? text,
@@ -802,7 +774,7 @@ Widget _infoSetUp({
 }
 
 // Multiple Containers
-Widget _buildMultipleContainer({
+Widget _buildContainer({
   required BuildContext context,
   required List<Widget> icons,
   required List<Widget> title,
@@ -822,13 +794,13 @@ Widget _buildMultipleContainer({
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
-        children: _buildMultipleRow(icons, title, info, onTap),
+        children: _buildRow(icons, title, info, onTap),
       ),
     ),
   );
 }
 
-List<Widget> _buildMultipleRow(
+List<Widget> _buildRow(
   List<Widget> icons,
   List<Widget> title,
   List<Widget> info,
@@ -854,8 +826,10 @@ List<Widget> _buildMultipleRow(
         ),
       ),
     );
-    if (i < icons.length - 1) {
-      rows.add(myDivider());
+    if(icons.length > 1){
+      if (i < icons.length - 1) {
+        rows.add(myDivider());
+      }
     }
   }
   return rows;

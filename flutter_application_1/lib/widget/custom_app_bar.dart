@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:intl/intl.dart';
@@ -32,7 +33,9 @@ class CustomAppBar extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () {
                     // go to settings page
-                    print('Setting Icon Tapped');
+                    if (kDebugMode) {
+                      print('Setting Icon Tapped');
+                    }
                   },
                   child: Icon(
                     CupertinoIcons.settings,

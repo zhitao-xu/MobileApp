@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_1/utils/theme.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_application_1/data/todo.dart';
 import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
 import 'package:flutter_application_1/pages/task_details.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_application_1/utils/todo_sorter.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -66,134 +68,21 @@ class _HomePageState extends State<HomePage> {
         child: BlocBuilder<TodoBloc, TodoState>(
           builder: (context, state) {
             if (state.status == TodoStatus.success) {
-              // Filter pending tasks
-              final todos = state.todos
-                .where((todo) => !todo.isDone)
-                .toList();
+              // Filter and sort pending tasks using the utility function
+              final sortedPendingTodos = sortTodosByPriorityAndDeadline(
+                state.todos.where((todo) => !todo.isDone).toList(),
+              );
 
-              // --- SORT PENDING TASKS: Priority then Deadline ---
-              // Fixed sorting function to handle null priorities safely
-              todos.sort((a, b) {
-                // Define priority order with default for unknown values
-                const priorityOrder = {'high': 0, 'medium': 1, 'low': 2, 'none': 3};
-                
-                // Safely get priority values with a default of 'none' if priority is null or not in the map
-                final priorityA = priorityOrder[a.priority.toLowerCase()] ?? priorityOrder['none']!;
-                final priorityB = priorityOrder[b.priority.toLowerCase()] ?? priorityOrder['none']!;
-                
-                // Compare priorities
-                final priorityCompare = priorityA.compareTo(priorityB);
+              // Filter and sort completed tasks using the utility function
+              final sortedCompletedTodos = sortTodosByPriorityAndDeadline(
+                state.todos.where((todo) => todo.isDone).toList(),
+              );
 
-                // If priorities are different, return the priority comparison result
-                if (priorityCompare != 0) {
-                  return priorityCompare;
-                } else {
-                  // Handle deadline comparison safely
-                  try {
-                    // Check if deadline is null or empty before parsing
-                    if (a.deadline.isEmpty || b.deadline.isEmpty) {
-                      return 0; // Consider them equal if any deadline is missing
-                    }
-                    
-                    // Try to safely access deadline parts and create DateTime objects
-                    DateTime? deadlineA;
-                    DateTime? deadlineB;
-                    
-                    try {
-                      // Check if deadline has at least 2 elements
-                      if (a.deadline.isNotEmpty) {
-                        deadlineA = DateTime.parse('${a.deadline[0]} ${a.deadline[1]}');
-                      }
-                    } catch (e) {
-                      print('Error parsing deadline A: ${a.title} - $e');
-                    }
-                    
-                    try {
-                      if (b.deadline.isNotEmpty) {
-                        deadlineB = DateTime.parse('${b.deadline[0]} ${b.deadline[1]}');
-                      }
-                    } catch (e) {
-                      print('Error parsing deadline B: ${b.title} - $e');
-                    }
-                    
-                    // Compare dates if both were successfully parsed
-                    if (deadlineA != null && deadlineB != null) {
-                      return deadlineA.compareTo(deadlineB);
-                    }
-                    
-                    return 0; // Default to equal if we couldn't parse both dates
-                  } catch (e) {
-                    print('Error comparing deadlines: ${a.title} or ${b.title} - $e');
-                    return 0;
-                  }
-                }
-              });
-
-              // Filter completed tasks
-              final completedTodos = state.todos.where((todo) => todo.isDone).toList();
-
-              // --- SORT COMPLETED TASKS: Priority then Deadline (using the same safer logic) ---
-              completedTodos.sort((a, b) {
-                // Define priority order with default for unknown values
-                const priorityOrder = {'high': 0, 'medium': 1, 'low': 2, 'none': 3};
-                
-                // Safely get priority values with a default of 'none' if priority is null or not in the map
-                final priorityA = priorityOrder[a.priority.toLowerCase()] ?? priorityOrder['none']!;
-                final priorityB = priorityOrder[b.priority.toLowerCase()] ?? priorityOrder['none']!;
-                
-                // Compare priorities
-                final priorityCompare = priorityA.compareTo(priorityB);
-
-                // If priorities are different, return the priority comparison result
-                if (priorityCompare != 0) {
-                  return priorityCompare;
-                } else {
-                  // Handle deadline comparison safely
-                  try {
-                    // Check if deadline is null or empty before parsing
-                    if (a.deadline.isEmpty || b.deadline.isEmpty) {
-                      return 0; // Consider them equal if any deadline is missing
-                    }
-                    
-                    // Try to safely access deadline parts and create DateTime objects
-                    DateTime? deadlineA;
-                    DateTime? deadlineB;
-                    
-                    try {
-                      // Check if deadline has at least 2 elements
-                      if (a.deadline.isNotEmpty) {
-                        deadlineA = DateTime.parse('${a.deadline[0]} ${a.deadline[1]}');
-                      }
-                    } catch (e) {
-                      print('Error parsing deadline A: ${a.title} - $e');
-                    }
-                    
-                    try {
-                      if (b.deadline.isNotEmpty) {
-                        deadlineB = DateTime.parse('${b.deadline[0]} ${b.deadline[1]}');
-                      }
-                    } catch (e) {
-                      print('Error parsing deadline B: ${b.title} - $e');
-                    }
-                    
-                    // Compare dates if both were successfully parsed
-                    if (deadlineA != null && deadlineB != null) {
-                      return deadlineA.compareTo(deadlineB);
-                    }
-                    
-                    return 0; // Default to equal if we couldn't parse both dates
-                  } catch (e) {
-                    print('Error comparing deadlines: ${a.title} or ${b.title} - $e');
-                    return 0;
-                  }
-                }
-              });
-              
               return ListView(
                 // Added padding to the bottom to move the last task out of the way of the add task floating action button
                 padding: const EdgeInsets.only(bottom: 85.0), // Adjust this value as needed
                 children: [
-                  if (todos.isNotEmpty) ...[
+                  if (sortedPendingTodos.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
@@ -202,10 +91,10 @@ class _HomePageState extends State<HomePage> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    ...todos.map((todo) =>
+                    ...sortedPendingTodos.map((todo) =>
                         buildTodoCard(todo, state.todos.indexOf(todo))),
                   ],
-                  if (completedTodos.isNotEmpty) ...[
+                  if (sortedCompletedTodos.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
@@ -214,7 +103,7 @@ class _HomePageState extends State<HomePage> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    ...completedTodos.map((todo) =>
+                    ...sortedCompletedTodos.map((todo) =>
                         buildTodoCard(todo, state.todos.indexOf(todo))),
                   ],
                 ],

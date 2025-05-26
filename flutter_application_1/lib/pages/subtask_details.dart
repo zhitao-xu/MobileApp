@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/widget/main_wrapper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -125,7 +126,9 @@ class _SubtaskDetailsPageState extends State<SubtaskDetailsPage> {
         currentIndex: -1,
         onPageChanged: (index) {
           // Handle bottom navigation bar item tap
-          print("Page changed to $index");
+          if (kDebugMode) {
+            print("Page changed to $index");
+          }
         },
       ),
     );

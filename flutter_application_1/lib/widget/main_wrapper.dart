@@ -1,9 +1,12 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/bloc/bottom_nav.dart';
 import 'package:flutter_application_1/pages/pages.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_application_1/data/todo.dart';
+import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -15,12 +18,15 @@ class MainWrapper extends StatefulWidget {
 class _MainWrapperState extends State<MainWrapper> {
   int _currentIndex = 0;
 
-  // Top Level Pages
+  /*
+  // The list of pages. Note that CalendarPage will now be initialized inside
+  // the BlocBuilder to receive the todos.
+  // The AnalyticsPage will also need the todos if it displays task analytics.
   final List<Widget> _topLevPages = const [
     HomePage(),
-    CalendarPage(),
+    //CalendarPage(), - This will be dynamically created below
     AnalyticsPage(),
-  ];
+  ];*/
 
  
   @override
@@ -31,7 +37,7 @@ class _MainWrapperState extends State<MainWrapper> {
         currentIndex: _currentIndex,
         onPageChanged: onPageChanged,
       ),
-      body: _mainWrapperBody(),
+      body: _mainWrapperBody(), // Now _mainWrapperBody handles the BlocBuilder and IndexedStack
     );
   }
 
@@ -43,20 +49,41 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   // Body
-  IndexedStack _mainWrapperBody(){
-  return IndexedStack(
-    index: _currentIndex,
-    children: _topLevPages.map((page) {
-      return AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: page,
+  Widget _mainWrapperBody() { // Changed return type to Widget
+    return BlocBuilder<TodoBloc, TodoState>(
+      builder: (context, todoState) {
+      if (todoState.status == TodoStatus.success) {
+      final List<Todo> allTodos = todoState.todos;
+
+            // topLevPages was moved here
+            // Dynamically create the list of pages with the current todos
+            final List<Widget> pagesWithData = [
+              const HomePage(), // HomePage typically doesn't need to be recreated, as it gets its own BlocBuilder for filtering
+              CalendarPage(todos: allTodos), // Pass the todos here!
+              AnalyticsPage(),
+            ];
+
+            return IndexedStack(
+              index: _currentIndex,
+              children: pagesWithData.map((page) {
+                // The AnimatedSwitcher should ideally be inside each page itself if you want
+                // animation only on that specific page's content changes, not the whole page swap.
+                // For full page transitions, this is fine.
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: page,
+                );
+              }).toList(),
+            );
+          } else if (todoState.status == TodoStatus.initial) {
+            return const Center(child: CircularProgressIndicator());
+          } else {
+            // Handle other states like error or loading
+            return const Center(child: Text('Failed to load tasks.'));
+          }
+        },
       );
-    }).toList(),
-  );
-}
-
-
-  // _bottomAppBarItem and _mainWrapperBottomNavBar removed; see MainWrapperBottomNavBar below.
+    }
 }
 
 class MainWrapperBottomNavBar extends StatelessWidget {
@@ -122,7 +149,9 @@ class MainWrapperBottomNavBar extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         onPageChanged(page);
-        print("Page changed to $page => $label");
+        if (kDebugMode) {
+          print("Page changed to $page => $label");
+        }
       },
       child: Container(
         color: transparent,

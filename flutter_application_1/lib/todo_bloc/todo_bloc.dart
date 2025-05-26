@@ -15,6 +15,7 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
     on<AddSubTask>(_onAddSubTask);
     on<CompleteSubTask>(_onCompleteSubTask);
     on<UpdateSubTask>(_onUpdateSubTask);
+    on<RemoveSubTask>(_onRemoveSubTask);
     on<UpdateTodo>(_onUpdateTodo);
   }
 
@@ -209,6 +210,43 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
 
       final updatedTodo = updatedTodos[event.todoIndex].copyWith(
         subtasks: updatedSubTasks,
+      );
+      updatedTodos[event.todoIndex] = updatedTodo;
+
+      emit(
+          state.copyWith(
+              todos: updatedTodos,
+              status: TodoStatus.success
+          )
+      );
+    } catch (e) {
+      emit(
+          state.copyWith(
+              status: TodoStatus.error
+          )
+      );
+    }
+  }
+
+  void _onRemoveSubTask(
+      RemoveSubTask event,
+      Emitter<TodoState> emit,
+      ) {
+    emit(
+        state.copyWith(
+            status: TodoStatus.loading
+        )
+    );
+    try {
+      final updatedTodos = List<Todo>.from(state.todos);
+      final updatedSubTasks = List<SubTask>.from(updatedTodos[event.todoIndex].subtasks);
+
+      // Rimuove il subtask all'indice specificato
+      updatedSubTasks.removeAt(event.subTaskIndex);
+
+      final updatedTodo = updatedTodos[event.todoIndex].copyWith(
+        subtasks: updatedSubTasks,
+        isDone: updatedSubTasks.isNotEmpty && updatedSubTasks.every((s) => s.isDone),
       );
       updatedTodos[event.todoIndex] = updatedTodo;
 

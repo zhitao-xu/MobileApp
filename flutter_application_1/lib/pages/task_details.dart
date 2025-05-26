@@ -123,8 +123,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _deadlineTimeController = TextEditingController(text: _currentItem.deadline[1]);
     _remindController = TextEditingController(text: _currentItem.remind);
     _repeatController = TextEditingController(text: _currentItem.repeat);
-    tagsController = TextEditingController(text: _currentItem.tags.join(', '));
-    
+
+    if(!widget.isSubTask){
+      tagsController = TextEditingController(text: _currentItem.tags.join(', '));
+    }
     // Initialize picked states based on parsed data
     _isDatePicked = dateText.isNotEmpty;
     _isTimePicked = timeText.isNotEmpty;
@@ -328,6 +330,37 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
             ),
           ),
         ),
+        
+        floatingActionButton: _currentPage == 1
+          ? SizedBox(
+              width: 70,
+              height: 70,
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>  TaskDetailsPage(
+                        taskIndex: widget.taskIndex,
+                        isSubTask: true,
+                      ),
+                    ),
+                  );
+                },
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                elevation: 10,
+                backgroundColor: amber,
+                child: const Icon(
+                  CupertinoIcons.add,
+                  color: white,
+                  size: 40, 
+                ),
+              )
+          )
+          : null,
+
         body: BlocBuilder<TodoBloc, TodoState>(
           builder: (context, state){
             if (state.status == TodoStatus.loading) {
@@ -816,7 +849,30 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                   ],
                   onTap: [() =>  _tagPicker(context, tagsController, _currentItem.tags),],
                 ),
-              ]
+              ],
+
+              // TEST SECTION
+              _buildContainer(
+                context: context,
+                icons:[
+                  _iconSetUp(
+                    icon: Icon(CupertinoIcons.printer),
+                    backgroundColor: amber,
+                  ),
+                ],
+                title: [Text("PRINT", style: taskTitleStyle,)],
+                info: [
+                  _infoSetUp(
+                    icon: Icon(CupertinoIcons.printer,),
+                  ),
+                ],
+                onTap: [
+                  () {
+                    // Implement print functionality here
+                    print(_currentItem.toString());
+                  },
+                ],
+              ),
             ],
           ),
         ),
@@ -831,11 +887,32 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
         child: ListView.builder(
           itemCount: widget.isSubTask ? 0 : context.read<TodoBloc>().state.todos[widget.taskIndex!].subtasks.length,
+          padding: const EdgeInsets.only(bottom: 120.0),
           itemBuilder: (context, index) {
             final subtask = context.read<TodoBloc>().state.todos[widget.taskIndex!].subtasks[index];
             return TodoCard.forSubTask(
               subTask: subtask,
               originalIndex: index,
+              onDelete: () {
+                if(widget.taskIndex != null) {
+                  context.read<TodoBloc>().add(RemoveSubTask(widget.taskIndex!, index));
+                }
+              },
+              onToggleCompletion: () => context.read<TodoBloc>().add(
+                CompleteSubTask(widget.taskIndex!,index,),
+              ),
+              onTap: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TaskDetailsPage(
+                      taskIndex: widget.taskIndex,
+                      subTaskIndex: index,
+                      isSubTask: true,
+                    ),
+                  ),
+                );
+              }
             );
           }
         )

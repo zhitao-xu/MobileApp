@@ -66,6 +66,18 @@ class SubTask {
       'repeat': repeat,
     };
   }
+  @override
+  String toString(){
+    return '\nSubTask('
+              'title: $title,\n'
+              'subtitle: $subtitle,\n'
+              'isDone: $isDone,\n'
+              'priority: $priority,\n'
+              'date: $date,\n'
+              'deadline: $deadline,\n'
+              'remind: $remind,\n'
+              'repeat: $repeat)\n\n';
+  }
 }
 
 class Todo {
@@ -150,5 +162,20 @@ class Todo {
       'tags': tags,
       'subtasks': subtasks.map((e) => e.toJson()).toList(),
     };
+  }
+
+  @override
+  String toString() {
+    return '\nTodo('
+        'title: $title,\n'
+        'subtitle: $subtitle,\n'
+        'isDone: $isDone,\n'
+        'priority: $priority,\n'
+        'date: $date,\n'
+        'deadline: $deadline,\n'
+        'remind: $remind,\n'
+        'repeat: $repeat,\n'
+        'tags: $tags,\n'
+        'subtasks: $subtasks)\n\n';
   }
 }

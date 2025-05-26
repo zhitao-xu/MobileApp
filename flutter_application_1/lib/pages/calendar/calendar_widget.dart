@@ -187,7 +187,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                       return const SizedBox.shrink();
                     }
 
-                    return TodoCard(
+                    return TodoCard.forTodo(
                       key: ValueKey(task.title+task.date), // Use unique ID as key for stability
                       todo: task,
                       originalIndex: originalIndex, // Pass the index the Bloc expects

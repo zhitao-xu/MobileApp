@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       body: Container(
-        color: white,
+        color: backgoundGrey,
         padding: const EdgeInsets.all(8.0),
         child: BlocBuilder<TodoBloc, TodoState>(
           builder: (context, state) {
@@ -92,7 +92,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     // Directly use TodoCard here
                     ...sortedPendingTodos.map((todo) =>
-                        TodoCard(
+                        TodoCard.forTodo(
                           key: ValueKey(todo.title + todo.date), // Unique key for efficiency
                           todo: todo,
                           originalIndex: state.todos.indexOf(todo), // Pass the original index from the main list
@@ -112,7 +112,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     // Directly use TodoCard here
                     ...sortedCompletedTodos.map((todo) =>
-                        TodoCard(
+                        TodoCard.forTodo(
                           key: ValueKey(todo.title + todo.date), // Unique key for efficiency
                           todo: todo,
                           originalIndex: state.todos.indexOf(todo), // Pass the original index from the main list

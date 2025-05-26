@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../todo_bloc/todo_bloc.dart';
 import '../data/todo.dart';
 import '../constants/tasks_constants.dart';
+import '../widget/todo/todo_card.dart';
 
 
 class TaskDetailsPage extends StatefulWidget {
@@ -24,9 +25,10 @@ class TaskDetailsPage extends StatefulWidget {
 class _TaskDetailsPageState extends State<TaskDetailsPage> {
   // Todo Task or Subtask
   late dynamic _currentItem;
+  final int _initialPage = 1000;
 
   // PageController for the page view
-  final PageController _pageController = PageController();
+  late PageController _pageController;
   int _currentPage = 0;
   final List<String> _contentType = ['Info', 'Subtasks'];
 
@@ -60,6 +62,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   @override
   void initState() {
     super.initState();
+
+    _pageController = PageController(initialPage: _initialPage);
+
     if(widget.isSubTask){
       if(widget.taskIndex != null && widget.subTaskIndex != null){
         // Editing existing subtask
@@ -362,7 +367,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                           child: GestureDetector(
                             onTap: (){
                               _pageController.animateToPage(
-                                index, 
+                                _pageController.page!.toInt() - _currentPage + index , 
                                 duration: const Duration(milliseconds: 300), 
                                 curve: Curves.easeInOut,
                               );
@@ -820,7 +825,22 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   }
 
   Widget _buildSubtasksContent(){
-  return Container();    
+    return Container(
+      color: backgoundGrey,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+        child: ListView.builder(
+          itemCount: widget.isSubTask ? 0 : context.read<TodoBloc>().state.todos[widget.taskIndex!].subtasks.length,
+          itemBuilder: (context, index) {
+            final subtask = context.read<TodoBloc>().state.todos[widget.taskIndex!].subtasks[index];
+            return TodoCard.forSubTask(
+              subTask: subtask,
+              originalIndex: index,
+            );
+          }
+        )
+      )
+    );    
   }
 }
 

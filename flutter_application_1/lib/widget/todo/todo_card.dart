@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/data/todo.dart';
 import 'package:flutter_application_1/pages/task_details.dart';
@@ -6,43 +8,176 @@ import 'package:flutter_application_1/utils/todo_utils.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
-class TodoCard extends StatelessWidget {
-  final Todo todo;
-  // This originalIndex is crucial because your Bloc's AlterTodo and UpdateTodo
-  // events still rely on an integer index to identify the Todo.
+// Generic interface to handle both Todo and SubTask
+abstract class TaskItem {
+  String get title;
+  String get subtitle;
+  bool get isDone;
+  String get priority;
+  List<String> get deadline;
+  String get date;
+}
+
+// Extensions to make Todo and SubTask implement TaskItem
+extension TodoAsTaskItem on Todo {
+  String get taskTitle => title;
+  String get taskSubtitle => subtitle;
+  bool get taskIsDone => isDone;
+  String get taskPriority => priority;
+  List<String> get taskDeadline => deadline;
+  String get taskDate => date;
+}
+
+extension SubTaskAsTaskItem on SubTask {
+  String get taskTitle => title;
+  String get taskSubtitle => subtitle;
+  bool get taskIsDone => isDone;
+  String get taskPriority => priority;
+  List<String> get taskDeadline => deadline;
+  String get taskDate => date;
+}
+
+class TodoCard<T> extends StatelessWidget {
+  final T item; // Can be Todo or SubTask
   final int originalIndex;
-  // Callbacks are now more specific to the Bloc's existing events.
-  final VoidCallback? onToggleCompletion; // For AlterTodo(index)
-  final VoidCallback? onDelete;           // For RemoveTodo(todo)
-  final void Function(Todo updatedTodo)? onUpdateFullTodo; // For UpdateTodo(index, updatedTodo)
-
-
-  // New boolean flags for display control
+  final VoidCallback? onToggleCompletion;
+  final VoidCallback? onDelete;
+  final void Function(T updatedItem)? onUpdateFullItem;
   final bool showDate;
   final bool showTime;
+  final bool isSubTask; // Flag to determine if this is a subtask
+  final VoidCallback? onTap; // Custom tap handler for subtasks
 
   const TodoCard({
     super.key,
-    required this.todo,
+    required this.item,
     required this.originalIndex,
     this.onToggleCompletion,
     this.onDelete,
-    this.onUpdateFullTodo, // This will be used if you decide to update more than just 'isDone'
-    this.showDate = true, // Default to true for general use cases
-    this.showTime = true, // Default to true for general use cases
+    this.onUpdateFullItem,
+    this.showDate = true,
+    this.showTime = true,
+    this.isSubTask = false,
+    this.onTap,
   });
+
+  // Factory constructors for easier usage
+  static TodoCard<Todo> forTodo({
+    Key? key,
+    required Todo todo,
+    required int originalIndex,
+    VoidCallback? onToggleCompletion,
+    VoidCallback? onDelete,
+    void Function(Todo updatedTodo)? onUpdateFullTodo,
+    bool showDate = true,
+    bool showTime = true,
+    VoidCallback? onTap,
+  }) {
+    return TodoCard<Todo>(
+      key: key,
+      item: todo,
+      originalIndex: originalIndex,
+      onToggleCompletion: onToggleCompletion,
+      onDelete: onDelete,
+      onUpdateFullItem: onUpdateFullTodo,
+      showDate: showDate,
+      showTime: showTime,
+      isSubTask: false,
+      onTap: onTap,
+    );
+  }
+
+  static TodoCard<SubTask> forSubTask({
+    Key? key,
+    required SubTask subTask,
+    required int originalIndex,
+    VoidCallback? onToggleCompletion,
+    VoidCallback? onDelete,
+    void Function(SubTask updatedSubTask)? onUpdateFullSubTask,
+    bool showDate = true,
+    bool showTime = true,
+    VoidCallback? onTap,
+  }) {
+    return TodoCard<SubTask>(
+      key: key,
+      item: subTask,
+      originalIndex: originalIndex,
+      onToggleCompletion: onToggleCompletion,
+      onDelete: onDelete,
+      onUpdateFullItem: onUpdateFullSubTask,
+      showDate: showDate,
+      showTime: showTime,
+      isSubTask: true,
+      onTap: onTap,
+    );
+  }
+
+  // Helper methods to access properties regardless of type
+  String get title {
+    if (item is Todo) {
+      return (item as Todo).title;
+    } else if (item is SubTask) {
+      return (item as SubTask).title;
+    }
+    return '';
+  }
+
+  String get subtitle {
+    if (item is Todo) {
+      return (item as Todo).subtitle;
+    } else if (item is SubTask) {
+      return (item as SubTask).subtitle;
+    }
+    return '';
+  }
+
+  bool get isDone {
+    if (item is Todo) {
+      return (item as Todo).isDone;
+    } else if (item is SubTask) {
+      return (item as SubTask).isDone;
+    }
+    return false;
+  }
+
+  String get priority {
+    if (item is Todo) {
+      return (item as Todo).priority;
+    } else if (item is SubTask) {
+      return (item as SubTask).priority;
+    }
+    return '';
+  }
+
+  List<String> get deadline {
+    if (item is Todo) {
+      return (item as Todo).deadline;
+    } else if (item is SubTask) {
+      return (item as SubTask).deadline;
+    }
+    return ['', ''];
+  }
+
+  String get date {
+    if (item is Todo) {
+      return (item as Todo).date;
+    } else if (item is SubTask) {
+      return (item as SubTask).date;
+    }
+    return '';
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isCompleted = todo.isDone;
+    final isCompleted = isDone;
 
     final backgroundColor = isCompleted
         ? Colors.grey[300]
-        : getPriorityColor(todo.priority);
+        : getPriorityColor(priority);
 
     
     // Use the centralized parsing function
-    DateTime? parsedDeadline = parseTodoDeadline(todo.deadline);
+    DateTime? parsedDeadline = parseTodoDeadline(deadline);
 
     // Build the deadline string based on showDate and showTime flags
     String deadlineText = '';
@@ -62,7 +197,7 @@ class TodoCard extends StatelessWidget {
     } else {
       // If parsedDeadline is null, we need to distinguish why.
       // Option 1: The deadline list is empty or has insufficient parts.
-      if (todo.deadline.isEmpty || todo.deadline.length < 2 || (todo.deadline[0].isEmpty && todo.deadline[1].isEmpty)) {
+      if (deadline.isEmpty || deadline.length < 2 || (deadline[0].isEmpty && deadline[1].isEmpty)) {
         deadlineText = 'No deadline';
       }
       // Option 2: The deadline list had parts, but they were genuinely unparseable (e.g., "32-02-2025" or "not-a-time").
@@ -76,14 +211,20 @@ class TodoCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 0),
+        margin: EdgeInsets.symmetric(
+          vertical: isSubTask ? 3.0 : 6.0,
+          horizontal: isSubTask ? 8.0 : 0.0,
+        ),
         color: backgroundColor,
-        elevation: 1,
+        elevation: isSubTask ? 0.5 : 1,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
+          side: isSubTask 
+            ? BorderSide(color: Colors.grey[300]!, width: 0.5)
+            : BorderSide.none,
         ),
         child: Slidable(
-          key: ValueKey(todo.title + todo.date), // Use todo.id for a truly unique key
+          key: ValueKey(title + date), // Use todo.id for a truly unique key
           startActionPane: ActionPane(
             motion: const ScrollMotion(),
             children: [
@@ -93,18 +234,40 @@ class TodoCard extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Icon(Icons.delete, color: Colors.white),
+                    Icon(Icons.delete, color: white),
                     SizedBox(height: 4),
-                    Text('Delete', style: TextStyle(color: Colors.white)),
+                    Text('Delete', style: TextStyle(color: white)),
                   ],
                 ),
               ),
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            padding: EdgeInsets.symmetric(vertical: isSubTask ? 0.0 : 4.0),
             child: ListTile(
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16.0, 
+                vertical: isSubTask ? 0.0 : 4.0,
+              ),
+              // leading: isSubTask
+              //     ? Icon(
+              //         Icons.subdirectory_arrow_right,
+              //         color: getPriorityColor(priority),
+              //       )
+              //     : null,
               onTap: () {
+                if(onTap != null) {
+                  onTap!();
+                  return;
+                }else if (!isSubTask) {
+                  // If it's not a subtask, navigate to the details page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskDetailsPage(taskIndex: originalIndex),
+                    ),
+                  );
+                }
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -115,11 +278,11 @@ class TodoCard extends StatelessWidget {
                 );
               },
               title: Text(
-                todo.title,
+                title,
                 style: TextStyle(
                   color: black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontWeight: isSubTask ? FontWeight.normal : FontWeight.bold,
+                  fontSize: isSubTask ? 14 : 16,
                   decoration: isCompleted ? TextDecoration.lineThrough : null,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -128,12 +291,12 @@ class TodoCard extends StatelessWidget {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (todo.subtitle.isNotEmpty)
+                  if (subtitle.isNotEmpty)
                     Text(
-                      todo.subtitle,
+                      subtitle,
                       style: TextStyle(
                         color: black,
-                        fontSize: 14,
+                        fontSize: isSubTask ? 12 : 14,
                         decoration: isCompleted ? TextDecoration.lineThrough : null,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -145,7 +308,7 @@ class TodoCard extends StatelessWidget {
                     Text(
                       deadlineText,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: isSubTask ? 10 : 12,
                         color: isCompleted ? Colors.grey[600] : Colors.grey[700],
                         decoration: isCompleted ? TextDecoration.lineThrough : null,
                       ),
@@ -153,9 +316,12 @@ class TodoCard extends StatelessWidget {
                 ],
               ),
               trailing: Checkbox(
-                value: todo.isDone,
+                value: isDone,
                 activeColor: isCompleted ? Colors.grey[800] : Theme.of(context).colorScheme.secondary,
                 checkColor: Colors.white,
+                materialTapTargetSize: isSubTask 
+                    ? MaterialTapTargetSize.shrinkWrap
+                    : MaterialTapTargetSize.padded,
                 onChanged: (value) {
                   // Use the specific onToggleCompletion callback
                   if (onToggleCompletion != null) {

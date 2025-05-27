@@ -96,6 +96,7 @@ DateTime? parseDateTimeFromStrings(String dateString, String timeString) {
   }
 }
 
+//TODO: Reminder Parser String to DateTime? Probably needs also the Deadline DateTime? as a parameter and also the Repeat Parameter
 /// Parses a reminder string into a DateTime.
 /// This is a simplified example. Your actual reminder logic might be more complex.
 /// For instance, "5 minutes before deadline", "tomorrow morning", etc.

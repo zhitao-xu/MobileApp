@@ -9,6 +9,7 @@ import '../todo_bloc/todo_bloc.dart';
 import '../data/todo.dart';
 import '../constants/tasks_constants.dart';
 import '../widget/todo/todo_card.dart';
+import '../widget/row_container.dart';
 
 
 class TaskDetailsPage extends StatefulWidget {
@@ -308,12 +309,11 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     },
     child: Scaffold(
       backgroundColor: lightBlue,
-      // Rest of your scaffold remains the same...
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(300),
           child: NavigatorAppBar(
             onBackTap: _handleBackNavigation,
-            title: "",
+            title: widget.isSubTask ? "Subtask" : "Task",
             widget: Row(
               children: [
                 TextButton(
@@ -321,7 +321,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                   child: const Text(
                     "Done",
                     style: TextStyle(
-                      color: black,
+                      color: white,
                       fontSize: 20,
                     ),
                   ),
@@ -645,7 +645,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
             children:[
               
               // DATE SECTION
-              _buildContainer(
+              buildContainer(
                 context: context,
                 icons: [
                   _iconSetUp(
@@ -747,7 +747,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
               ),
               
               // PRIORITY SECTION
-              _buildContainer(
+              buildContainer(
                 context: context,
                 icons: [
                   _iconSetUp(
@@ -782,7 +782,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
               ),
             
               // REMIND & REPEAT SECTION
-              _buildContainer(
+              buildContainer(
                 context: context, 
                 icons: [
                   _iconSetUp(
@@ -838,7 +838,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
             
               if(!widget.isSubTask) ...[
                 // TAGS SECTION
-                _buildContainer(
+                buildContainer(
                   context: context,
                   icons: [_iconSetUp(icon: Icon(CupertinoIcons.number,), backgroundColor: greyDark), ],
                   title: [Text("Tags", style: taskTitleStyle,)], 
@@ -852,7 +852,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
               ],
 
               // TEST SECTION
-              _buildContainer(
+              buildContainer(
                 context: context,
                 icons:[
                   _iconSetUp(
@@ -860,7 +860,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                     backgroundColor: amber,
                   ),
                 ],
-                title: [Text("PRINT", style: taskTitleStyle,)],
+                title: [Text("PRINT TASK INFO", style: taskTitleStyle,)],
                 info: [
                   _infoSetUp(
                     icon: Icon(CupertinoIcons.printer,),
@@ -984,15 +984,6 @@ Widget _buildTextField({
   );
 }
 
-Divider myDivider() {
-  return const Divider(
-    height: 1,
-    thickness: 0.25,
-    color: grey,
-    indent: 10,
-    endIndent: 10,
-  );
-}
 
 Widget _infoSetUp({
   Key? key,
@@ -1023,67 +1014,7 @@ Widget _infoSetUp({
   );
 }
 
-// Multiple Containers
-Widget _buildContainer({
-  required BuildContext context,
-  required List<Widget> icons,
-  required List<Widget> title,
-  required List<Widget> info,
-  required List<VoidCallback> onTap,
-}) {
-  assert(icons.length == title.length && title.length == info.length && info.length == onTap.length, 'All lists must be of the same length');
 
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-    child: Container(
-      padding: const EdgeInsets.all(6.0),
-      decoration: BoxDecoration(
-        color: white,
-        border: Border.all(color: white),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: _buildRow(icons, title, info, onTap),
-      ),
-    ),
-  );
-}
-
-List<Widget> _buildRow(
-  List<Widget> icons,
-  List<Widget> title,
-  List<Widget> info,
-  List<VoidCallback> onTap,
-) {
-  List<Widget> rows = [];
-  
-  for (int i = 0; i < icons.length; i++) {
-    rows.add(
-      InkWell(
-        onTap: onTap[i],
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 10.0, 10.0, 10.0),
-              child: icons[i],
-            ),
-            title[i],
-            const Spacer(),
-            info[i],
-          ],
-        ),
-      ),
-    );
-    if(icons.length > 1){
-      if (i < icons.length - 1) {
-        rows.add(myDivider());
-      }
-    }
-  }
-  return rows;
-}
 
 void _tagPicker(BuildContext context, TextEditingController tagsController, List<String> selectedTags) {
   TextEditingController newTagController = TextEditingController();

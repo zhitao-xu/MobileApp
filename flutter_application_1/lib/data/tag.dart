@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 class TagStorage {
@@ -32,7 +33,9 @@ class TagStorage {
         await _saveToFile(); // Save default tags
       }
     } catch (e) {
-      print('Error initializing tags: $e');
+      if (kDebugMode) {
+        print('Error initializing tags: $e');
+      }
       _tags = List.from(_defaultTags);
     }
     
@@ -46,7 +49,9 @@ class TagStorage {
       final file = File('${directory.path}/$_fileName');
       await file.writeAsString(json.encode(_tags));
     } catch (e) {
-      print('Error saving to file: $e');
+      if (kDebugMode) {
+        print('Error saving to file: $e');
+      }
     }
   }
 

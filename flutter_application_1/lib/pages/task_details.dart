@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/data/tag.dart';
 import 'package:flutter_application_1/utils/theme.dart';
+import 'package:flutter_application_1/utils/todo_utils.dart';
 import 'package:flutter_application_1/widget/navigator_app_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../todo_bloc/todo_bloc.dart';
@@ -66,35 +68,42 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
     _pageController = PageController(initialPage: _initialPage);
 
-    if(widget.isSubTask){
-      if(widget.taskIndex != null && widget.subTaskIndex != null){
+    if (widget.isSubTask) {
+      if (widget.taskIndex != null && widget.subTaskIndex != null) {
         // Editing existing subtask
         _currentItem = context.read<TodoBloc>().state.todos[widget.taskIndex!].subtasks[widget.subTaskIndex!];
-      }else{
+      } else {
         // Creating new subtask
         _currentItem = SubTask(
-          title: '', 
-          subtitle: '', 
-          isDone: false, 
-          priority: 'None', 
-          deadline: ['', ''], 
-          remind: tasksReminder[0], 
-          repeat: tasksRepeat[0],
+          title: '',
+          subtitle: '',
+          isDone: false,
+          priority: 'None',
+          // deadline now expects DateTime?, so pass null for a new, unset deadline
+          deadline: null,
+          // remindAt now expects DateTime?, so pass null for a new, unset reminder time
+          // If tasksReminder[0] was meant to trigger some immediate reminder,
+          // you'd need logic here to set a DateTime for 'remindAt', e.g., DateTime.now().add(Duration(minutes: 5))
+          // For a fresh task, it's often null.
+          remindAt: null, // Changed 'remind' to 'remindAt' and set to null
+          repeat: tasksRepeat[0], // Assuming tasksRepeat[0] is still a String
         );
       }
-    }else{
+    } else {
       // Handle existing Todo task
-      if(widget.taskIndex != null){
+      if (widget.taskIndex != null) {
         _currentItem = context.read<TodoBloc>().state.todos[widget.taskIndex!];
       } else {
         _currentItem = Todo(
-          title: '', 
-          subtitle: '', 
-          isDone: false, 
-          priority: 'None', 
-          deadline: ['', ''], 
-          remind: tasksReminder[0], 
-          repeat: tasksRepeat[0],
+          title: '',
+          subtitle: '',
+          isDone: false,
+          priority: 'None',
+          // deadline now expects DateTime?, so pass null for a new, unset deadline
+          deadline: null,
+          // remindAt now expects DateTime?, so pass null for a new, unset reminder time
+          remindAt: null, // Changed 'remind' to 'remindAt' and set to null
+          repeat: tasksRepeat[0], // Assuming tasksRepeat[0] is still a String
           tags: [],
         );
       }
@@ -107,10 +116,22 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _priorityController = TextEditingController(text: _currentItem.priority);
     
     selectedPriority = _priorityController.text;
-    String dateText = _currentItem.deadline[0];
-    String timeText = _currentItem.deadline[1];
+
+
+    // Safely get date and time strings from DateTime? deadline
+    String dateText = formatDateTimeToDateString(_currentItem.deadline);
+    String timeText = formatDateTimeToTimeString(_currentItem.deadline);
+
+    _deadlineDateController = TextEditingController(text: dateText);
+    _deadlineTimeController = TextEditingController(text: timeText);
+
+    // Safely get reminder string from DateTime? remindAt
+    _remindController = TextEditingController(text: formatDateTimeToRemindString(_currentItem.remindAt));
+    _repeatController = TextEditingController(text: _currentItem.repeat);
+
     
     // Check if the date field contains time information (looking for space followed by digits and colon)
+    /*
     if (dateText.contains(RegExp(r'\s\d+:'))) {
       // Split date and time
       final parts = dateText.split(RegExp(r'\s(?=\d+:)'));
@@ -118,12 +139,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         dateText = parts[0].trim();
         timeText = parts[1].trim();
       }
-    }
-    
-    _deadlineDateController = TextEditingController(text: _currentItem.deadline[0]);
-    _deadlineTimeController = TextEditingController(text: _currentItem.deadline[1]);
-    _remindController = TextEditingController(text: _currentItem.remind);
-    _repeatController = TextEditingController(text: _currentItem.repeat);
+    }*/
 
     if(!widget.isSubTask){
       tagsController = TextEditingController(text: _currentItem.tags.join(', '));
@@ -246,14 +262,19 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         Navigator.of(context).pop();
         return;
       }
-    } else {
-      // Existing tasks
+    } else {// Existing tasks
+      // IMPORTANT: Need to parse the current deadline/remindAt from _currentItem
+      // into the same string format as _deadlineDateController.text etc.
+      // to properly compare for changes.
+      // Assuming your Todo/SubTask models have getters for these formatted strings
+      // or you re-format them here.
+      // For now, I'll use the current controller texts as a proxy.
       final hasChanges = _titleController.text != _currentItem.title ||
         _subtitleController.text != _currentItem.subtitle ||
         _priorityController.text != _currentItem.priority ||
-        _deadlineDateController.text != _currentItem.deadline[0] ||
-        _deadlineTimeController.text != _currentItem.deadline[1] ||
-        _remindController.text != _currentItem.remind ||
+        _deadlineDateController.text != formatDateTimeToDateString(_currentItem.deadline) ||
+        _deadlineTimeController.text != formatDateTimeToTimeString(_currentItem.deadline) ||
+        _remindController.text != formatDateTimeToRemindString(_currentItem.remindAt) ||
         _repeatController.text != _currentItem.repeat;
 
       if (!hasChanges) {
@@ -469,44 +490,59 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       );
       return;
     }
-    
-    if(widget.isSubTask){
+        
+    // Parse the deadline and reminder date/time BEFORE calling copyWith
+    final DateTime? parsedDeadline = parseDateTimeFromStrings(
+      _deadlineDateController.text,
+      _deadlineTimeController.text,
+    );
+
+    final DateTime? parsedRemindAt = parseReminderString(
+      _remindController.text,
+    );
+
+
+    if (widget.isSubTask) {
       // Subtask saving logic
       final updatedSubTask = (_currentItem as SubTask).copyWith(
         title: _titleController.text,
         subtitle: _subtitleController.text,
         priority: _priorityController.text,
-        deadline: [_deadlineDateController.text, _deadlineTimeController.text],
-        remind: _remindController.text,
+        // Pass the parsed DateTime?
+        deadline: parsedDeadline,
+        // Pass the parsed DateTime?
+        remindAt: parsedRemindAt, // Changed 'remind' to 'remindAt'
         repeat: _repeatController.text,
       );
 
-      if(widget.subTaskIndex != null){
+      if (widget.subTaskIndex != null) {
         // Update existing subtask
         context.read<TodoBloc>().add(UpdateSubTask(
           widget.taskIndex!,
           widget.subTaskIndex!,
           updatedSubTask,
-        )
-      );
-      }else{
+        ));
+      } else {
         // Add new subtask
-        context.read<TodoBloc>().add(AddSubTask(widget.taskIndex!,updatedSubTask));
+        context.read<TodoBloc>().add(AddSubTask(widget.taskIndex!, updatedSubTask));
       }
-    }else{
+    } else {
       // Todo task saving logic
       final updatedTodo = (_currentItem as Todo).copyWith(
         title: _titleController.text,
         subtitle: _subtitleController.text,
         priority: _priorityController.text,
-        deadline: [_deadlineDateController.text, _deadlineTimeController.text],
-        remind: _remindController.text,
+        // Pass the parsed DateTime?
+        deadline: parsedDeadline,
+        // Pass the parsed DateTime?
+        remindAt: parsedRemindAt, // Changed 'remind' to 'remindAt'
         repeat: _repeatController.text,
+        tags: [], // Assuming tags are not controlled by a TextEditingController here
       );
-    
-      if(widget.taskIndex != null){
+
+      if (widget.taskIndex != null) {
         context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex!, updatedTodo));
-      }else{
+      } else {
         context.read<TodoBloc>().add(AddTodo(updatedTodo));
       }
     }
@@ -869,7 +905,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                 onTap: [
                   () {
                     // Implement print functionality here
-                    print(_currentItem.toString());
+                    if (kDebugMode) {
+                      print(_currentItem.toString());
+                    }
                   },
                 ],
               ),

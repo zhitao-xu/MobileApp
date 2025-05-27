@@ -63,11 +63,14 @@ List<Widget> _buildRow(
 }
 
 Widget myDivider() {
-  return const Divider(
-    color: grey,
-    height: 1,
-    thickness: 0.5,
-    indent: 16,
-    endIndent: 16,
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 6.0),
+    child: const Divider(
+      color: grey,
+      height: 1,
+      thickness: 0.5,
+      indent: 16,
+      endIndent: 16,
+    ),
   );
 }

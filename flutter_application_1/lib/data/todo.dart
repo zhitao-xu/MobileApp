@@ -14,6 +14,7 @@ class SubTask {
   DateTime createdAt; // Already DateTime - perfect!
   DateTime? actualCompletionDate; // Already DateTime? - perfect!
   DateTime? remindAt; // Already DateTime? - perfect!
+  String remind;
   String repeat;
 
   SubTask({
@@ -26,6 +27,7 @@ class SubTask {
     this.deadline, // Nullable DateTime
     this.actualCompletionDate, // Nullable DateTime
     this.remindAt, // Nullable DateTime
+    this.remind = '',
     this.repeat = '',
   }) :
         // Generate a new ID if not provided (e.g., when creating a new task)
@@ -44,6 +46,7 @@ class SubTask {
     DateTime? deadline,
     DateTime? actualCompletionDate,
     DateTime? remindAt,
+    String? remind,
     String? repeat,
   }) {
     return SubTask(
@@ -56,6 +59,7 @@ class SubTask {
       deadline: deadline ?? this.deadline,
       actualCompletionDate: actualCompletionDate ?? this.actualCompletionDate,
       remindAt: remindAt ?? this.remindAt,
+      remind: remind ?? this.remind,
       repeat: repeat ?? this.repeat,
     );
   }
@@ -106,6 +110,7 @@ class SubTask {
       deadline: parseFlexibleDateTime(json['deadline']), // Use the flexible parser for deadline
       actualCompletionDate: parseFlexibleDateTime(json['actualCompletionDate']),
       remindAt: parseFlexibleDateTime(json['remindAt']),
+      remind: json['remind'] ?? '',
       repeat: json['repeat'] ?? '',
     );
   }
@@ -125,6 +130,7 @@ class SubTask {
       'deadline': dateTimeToJson(deadline),
       'actualCompletionDate': dateTimeToJson(actualCompletionDate),
       'remindAt': dateTimeToJson(remindAt),
+      'remind': remind,
       'repeat': repeat,
     };
   }
@@ -141,6 +147,7 @@ class SubTask {
         'deadline: $deadline,\n'
         'actualCompletionDate: $actualCompletionDate,\n'
         'remindAt: $remindAt,\n'
+        'remind: $remind,\n'
         'repeat: $repeat)\n\n';
   }
 }
@@ -157,6 +164,7 @@ class Todo {
   DateTime? actualCompletionDate; // Already DateTime? - perfect!
   DateTime? remindAt; // Already DateTime? - perfect!
   String repeat;
+  String remind;
   List<String> tags;
   List<SubTask> subtasks;
 
@@ -171,6 +179,7 @@ class Todo {
     this.actualCompletionDate, // Nullable DateTime
     this.remindAt, // Nullable DateTime
     this.repeat = '',
+    this.remind = '',
     this.tags = const [],
     this.subtasks = const [],
   }) :
@@ -191,6 +200,7 @@ class Todo {
     DateTime? actualCompletionDate,
     DateTime? remindAt,
     String? repeat,
+    String? remind,
     List<String>? tags,
     List<SubTask>? subtasks,
   }) {
@@ -204,6 +214,7 @@ class Todo {
       deadline: deadline ?? this.deadline,
       actualCompletionDate: actualCompletionDate ?? this.actualCompletionDate,
       remindAt: remindAt ?? this.remindAt,
+      remind: remind ?? this.remind,
       repeat: repeat ?? this.repeat,
       tags: tags ?? this.tags,
       subtasks: subtasks ?? this.subtasks,
@@ -257,6 +268,7 @@ class Todo {
       actualCompletionDate: parseFlexibleDateTime(json['actualCompletionDate']),
       remindAt: parseFlexibleDateTime(json['remindAt']),
       repeat: json['repeat'] ?? '',
+      remind: json['remind'] ?? '',
       tags: List<String>.from(json['tags'] ?? []),
       subtasks: (json['subtasks'] as List<dynamic>?)
           ?.map((e) => SubTask.fromJson(e as Map<String, dynamic>))
@@ -278,6 +290,7 @@ class Todo {
       'deadline': dateTimeToJson(deadline),
       'actualCompletionDate': dateTimeToJson(actualCompletionDate),
       'remindAt': dateTimeToJson(remindAt),
+      'remind': remind,
       'repeat': repeat,
       'tags': tags,
       'subtasks': subtasks.map((e) => e.toJson()).toList(),
@@ -297,6 +310,7 @@ class Todo {
         'actualCompletionDate: $actualCompletionDate,\n'
         'remindAt: $remindAt,\n'
         'repeat: $repeat,\n'
+        'remind: $remind,\n'
         'tags: $tags,\n'
         'subtasks: $subtasks)\n\n';
   }

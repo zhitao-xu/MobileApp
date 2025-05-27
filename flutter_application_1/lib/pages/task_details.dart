@@ -12,6 +12,7 @@ import '../data/todo.dart';
 import '../constants/tasks_constants.dart';
 import '../widget/todo/todo_card.dart';
 import '../widget/row_container.dart';
+import '../utils/todo_utils.dart';
 
 
 class TaskDetailsPage extends StatefulWidget {
@@ -86,6 +87,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
           // you'd need logic here to set a DateTime for 'remindAt', e.g., DateTime.now().add(Duration(minutes: 5))
           // For a fresh task, it's often null.
           remindAt: null, // Changed 'remind' to 'remindAt' and set to null
+          remind: tasksReminder[0],
           repeat: tasksRepeat[0], // Assuming tasksRepeat[0] is still a String
         );
       }
@@ -103,6 +105,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
           deadline: null,
           // remindAt now expects DateTime?, so pass null for a new, unset reminder time
           remindAt: null, // Changed 'remind' to 'remindAt' and set to null
+          remind: tasksReminder[0],
           repeat: tasksRepeat[0], // Assuming tasksRepeat[0] is still a String
           tags: [],
         );
@@ -126,20 +129,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _deadlineTimeController = TextEditingController(text: timeText);
 
     // Safely get reminder string from DateTime? remindAt
-    _remindController = TextEditingController(text: formatDateTimeToRemindString(_currentItem.remindAt));
+    _remindController = TextEditingController(text:_currentItem.remind);
     _repeatController = TextEditingController(text: _currentItem.repeat);
 
-    
-    // Check if the date field contains time information (looking for space followed by digits and colon)
-    /*
-    if (dateText.contains(RegExp(r'\s\d+:'))) {
-      // Split date and time
-      final parts = dateText.split(RegExp(r'\s(?=\d+:)'));
-      if (parts.length > 1) {
-        dateText = parts[0].trim();
-        timeText = parts[1].trim();
-      }
-    }*/
 
     if(!widget.isSubTask){
       tagsController = TextEditingController(text: _currentItem.tags.join(', '));
@@ -274,7 +266,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         _priorityController.text != _currentItem.priority ||
         _deadlineDateController.text != formatDateTimeToDateString(_currentItem.deadline) ||
         _deadlineTimeController.text != formatDateTimeToTimeString(_currentItem.deadline) ||
-        _remindController.text != formatDateTimeToRemindString(_currentItem.remindAt) ||
+        _remindController.text != _currentItem.remind ||
         _repeatController.text != _currentItem.repeat;
 
       if (!hasChanges) {
@@ -497,10 +489,20 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       _deadlineTimeController.text,
     );
 
-    final DateTime? parsedRemindAt = parseReminderString(
-      _remindController.text,
-    );
-
+    // TODO: save DateTime remindAT
+    // String date = _deadlineDateController.text;
+    // String time = _deadlineTimeController.text;
+    // final DateTime? deadlineDateTime = formateDeadlineToDateTime(date, time);
+    // DateTime? parsedRemindAt;
+    // if(deadlineDateTime != null){
+    //   parsedRemindAt = convertReminderStringToDateTime(
+    //     _remindAtController.text, deadlineDateTime
+    //   );
+    // }else{
+    //   if(kDebugMode){
+    //     print("Deadline Date is empty");
+    //   }
+    // }
 
     if (widget.isSubTask) {
       // Subtask saving logic
@@ -511,7 +513,8 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         // Pass the parsed DateTime?
         deadline: parsedDeadline,
         // Pass the parsed DateTime?
-        remindAt: parsedRemindAt, // Changed 'remind' to 'remindAt'
+        remind: _remindController.text,
+        //TODO: reminAT
         repeat: _repeatController.text,
       );
 
@@ -535,7 +538,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         // Pass the parsed DateTime?
         deadline: parsedDeadline,
         // Pass the parsed DateTime?
-        remindAt: parsedRemindAt, // Changed 'remind' to 'remindAt'
+        // TODO: remindAT
+        // remindAt: parsedRemindAt, // Changed 'remind' to 'remindAt'
+        remind: _remindController.text,
         repeat: _repeatController.text,
         tags: [], // Assuming tags are not controlled by a TextEditingController here
       );
@@ -576,7 +581,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       position = RelativeRect.fromRect(
         Rect.fromPoints(
           buttonPosition + Offset(0, buttonBox.size.height + verticalOffset), 
-          buttonPosition + Offset(buttonBox.size.width, buttonBox.size.height + verticalOffset)
+          buttonPosition + Offset(buttonBox.size.width + 6.0, buttonBox.size.height + verticalOffset)
         ),
         Offset.zero & overlay.size,
       );
@@ -600,10 +605,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       ),
       elevation: 8.0,
       color: white,
-      items:options.map((option) => _buildPopupMenuItem(
-        value: option,
-        selectedValue: _getSelectedValueForOption(options),
-      )).toList(),
+      items: _buildPopupMenuItemsWithDividers(
+        options: options, 
+        selectedValue: _getSelectedValueForOption(options)
+      ),
     ).then((selectedValue){
       if(selectedValue != null){
         setState(() {
@@ -633,6 +638,27 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     return '';
   }
 
+  List<PopupMenuEntry<String>> _buildPopupMenuItemsWithDividers({
+    required List<String> options,
+    required String selectedValue,
+  }){
+    List<PopupMenuEntry<String>> items = [];
+
+    for(int i=0; i<options.length; i++){
+      items.add(_buildPopupMenuItem(
+        value: options[i],
+        selectedValue: selectedValue,
+      ));
+
+      if(i < options.length - 1){
+        items.add(PopupMenuDivider(height: 0.4));
+      }
+    }
+
+    return items;
+  }
+  
+
   PopupMenuItem<String> _buildPopupMenuItem({
     required String value,
     required String selectedValue,
@@ -643,16 +669,19 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       value: value,
       height: 44.0,
       padding: EdgeInsets.zero,
-      child: Container(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Row(
           children: [
-            isSelected
-              ? Icon(CupertinoIcons.checkmark_alt, size: 18)
-              : const SizedBox(width: 18),
-              SizedBox(width: 10),
-              Text(value),
+            SizedBox(
+              width: 24,
+              child: isSelected
+                ? Icon(CupertinoIcons.checkmark_alt, size: 18)
+                : null,
+            ),
+            Expanded(
+              child: Center(child: Text(value),),
+            ),
           ],
         ),
       )
@@ -702,7 +731,6 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                           children: [
                             Text("Date", style: taskTitleStyle),
                             if(_isDatePicked) ...[
-                              const SizedBox(height: 4),
                               Text(
                                 _deadlineDateController.text,
                                 style: taskInfoStyle.copyWith(
@@ -722,7 +750,6 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                           children: [
                             Text("Time", style: taskTitleStyle),
                             if(_isDatePicked) ...[
-                              const SizedBox(height: 4),
                               Text(
                                 _deadlineTimeController.text,
                                 style: taskInfoStyle.copyWith(
@@ -738,7 +765,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                 info: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Switch(
+                    child: Switch.adaptive(
                       value: _isDatePicked,
                       // activeColor: green,
                       // inactiveThumbColor: grey,
@@ -759,7 +786,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Switch(
+                    child: Switch.adaptive(
                       value: _isTimePicked,
                       onChanged: _isDatePicked
                         ? (value) async{
@@ -1022,7 +1049,6 @@ Widget _buildTextField({
   );
 }
 
-
 Widget _infoSetUp({
   Key? key,
   String? text,
@@ -1051,8 +1077,6 @@ Widget _infoSetUp({
     ),
   );
 }
-
-
 
 void _tagPicker(BuildContext context, TextEditingController tagsController, List<String> selectedTags) {
   TextEditingController newTagController = TextEditingController();

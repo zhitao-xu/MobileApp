@@ -14,7 +14,7 @@ const List<String> tasksReminder = [
   '1 month before',
   '3 months before',
   '6 months before',
-  'Custom',
+  //'Custom',
 ];
 
 const List<String> tasksRepeat = [
@@ -24,5 +24,5 @@ const List<String> tasksRepeat = [
   'Weekly',
   'Monthly',
   'Yearly',
-  'Custom',
+  //'Custom',
 ];

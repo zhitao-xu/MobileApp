@@ -1,39 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/data/todo.dart';
+import 'package:flutter_application_1/data/todo.dart'; // Import your Todo and SubTask models
 import 'package:flutter_application_1/pages/task_details.dart';
 import 'package:flutter_application_1/utils/theme.dart'; // For your custom colors
-import 'package:flutter_application_1/utils/todo_utils.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
-// Generic interface to handle both Todo and SubTask
-abstract class TaskItem {
-  String get title;
-  String get subtitle;
-  bool get isDone;
-  String get priority;
-  List<String> get deadline;
-  String get date;
-}
-
-// Extensions to make Todo and SubTask implement TaskItem
-extension TodoAsTaskItem on Todo {
-  String get taskTitle => title;
-  String get taskSubtitle => subtitle;
-  bool get taskIsDone => isDone;
-  String get taskPriority => priority;
-  List<String> get taskDeadline => deadline;
-  String get taskDate => date;
-}
-
-extension SubTaskAsTaskItem on SubTask {
-  String get taskTitle => title;
-  String get taskSubtitle => subtitle;
-  bool get taskIsDone => isDone;
-  String get taskPriority => priority;
-  List<String> get taskDeadline => deadline;
-  String get taskDate => date;
-}
+// --- REMOVE TaskItem abstract class ---
+// --- REMOVE TodoAsTaskItem and SubTaskAsTaskItem extensions ---
 
 class TodoCard<T> extends StatelessWidget {
   final T item; // Can be Todo or SubTask
@@ -59,7 +32,7 @@ class TodoCard<T> extends StatelessWidget {
     this.onTap,
   });
 
-  // Factory constructors for easier usage
+  // Factory constructors for easier usage - No changes here, still works
   static TodoCard<Todo> forTodo({
     Key? key,
     required Todo todo,
@@ -111,7 +84,17 @@ class TodoCard<T> extends StatelessWidget {
   }
 
   // Helper methods to access properties regardless of type
-  String get title {
+  // These are crucial for type safety inside the build method
+  String get _id { // Renamed to _id to avoid conflict if `id` is a getter on `item`
+    if (item is Todo) {
+      return (item as Todo).id;
+    } else if (item is SubTask) {
+      return (item as SubTask).id;
+    }
+    return ''; // Should not happen with valid Todo/SubTask
+  }
+
+  String get _title {
     if (item is Todo) {
       return (item as Todo).title;
     } else if (item is SubTask) {
@@ -120,7 +103,7 @@ class TodoCard<T> extends StatelessWidget {
     return '';
   }
 
-  String get subtitle {
+  String get _subtitle {
     if (item is Todo) {
       return (item as Todo).subtitle;
     } else if (item is SubTask) {
@@ -129,7 +112,7 @@ class TodoCard<T> extends StatelessWidget {
     return '';
   }
 
-  bool get isDone {
+  bool get _isDone {
     if (item is Todo) {
       return (item as Todo).isDone;
     } else if (item is SubTask) {
@@ -138,7 +121,7 @@ class TodoCard<T> extends StatelessWidget {
     return false;
   }
 
-  String get priority {
+  String get _priority {
     if (item is Todo) {
       return (item as Todo).priority;
     } else if (item is SubTask) {
@@ -147,64 +130,53 @@ class TodoCard<T> extends StatelessWidget {
     return '';
   }
 
-  List<String> get deadline {
+  // Now correctly returns DateTime?
+  DateTime? get _deadline {
     if (item is Todo) {
       return (item as Todo).deadline;
     } else if (item is SubTask) {
       return (item as SubTask).deadline;
     }
-    return ['', ''];
+    return null;
   }
 
-  String get date {
+  // Now correctly returns DateTime (createdAt property)
+  DateTime get _createdAt { // Renamed from 'date' to 'createdAt' to match your model
     if (item is Todo) {
-      return (item as Todo).date;
+      return (item as Todo).createdAt;
     } else if (item is SubTask) {
-      return (item as SubTask).date;
+      return (item as SubTask).createdAt;
     }
-    return '';
+    return DateTime.now(); // Fallback: should ideally always have a createdAt
   }
+
 
   @override
   Widget build(BuildContext context) {
-    final isCompleted = isDone;
+    final isCompleted = _isDone; // Use the helper getter
 
     final backgroundColor = isCompleted
         ? Colors.grey[300]
-        : getPriorityColor(priority);
+        : getPriorityColor(_priority); // Use the helper getter
 
-    
-    // Use the centralized parsing function
-    DateTime? parsedDeadline = parseTodoDeadline(deadline);
+    // Directly use the _deadline getter which returns DateTime?
+    DateTime? currentDeadline = _deadline;
 
     // Build the deadline string based on showDate and showTime flags
     String deadlineText = '';
-    if (parsedDeadline != null) {
+    if (currentDeadline != null) {
       if (showDate && showTime) {
-        deadlineText = 'Deadline: ${DateFormat('dd-MM-yyyy HH:mm').format(parsedDeadline)}';
+        deadlineText = 'Deadline: ${DateFormat('dd-MM-yyyy HH:mm').format(currentDeadline)}';
       } else if (showDate) {
-        deadlineText = 'Deadline: ${DateFormat('dd-MM-yyyy').format(parsedDeadline)}';
+        deadlineText = 'Deadline: ${DateFormat('dd-MM-yyyy').format(currentDeadline)}';
       } else if (showTime) {
-        deadlineText = 'Deadline: ${DateFormat('HH:mm').format(parsedDeadline)}';
+        deadlineText = 'Deadline: ${DateFormat('HH:mm').format(currentDeadline)}';
       } else {
-        // If neither date nor time are requested, but there's a deadline,
-        // you might still want to indicate its presence or just show nothing.
-        // For now, let's make it empty if both are false.
-        deadlineText = 'Deadline set but not visible'; // Or 'Deadline set' if you want a minimal indicator
+        deadlineText = 'Deadline set'; // Minimal indicator
       }
     } else {
-      // If parsedDeadline is null, we need to distinguish why.
-      // Option 1: The deadline list is empty or has insufficient parts.
-      if (deadline.isEmpty || deadline.length < 2 || (deadline[0].isEmpty && deadline[1].isEmpty)) {
-        deadlineText = 'No deadline';
-      }
-      // Option 2: The deadline list had parts, but they were genuinely unparseable (e.g., "32-02-2025" or "not-a-time").
-      else {
-        deadlineText = 'Deadline: Invalid Date Format';
-      }
+      deadlineText = 'No deadline';
     }
-    
-    
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
@@ -217,12 +189,12 @@ class TodoCard<T> extends StatelessWidget {
         elevation: isSubTask ? 0.5 : 1,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
-          side: isSubTask 
-            ? BorderSide(color: Colors.grey[300]!, width: 0.5)
-            : BorderSide.none,
+          side: isSubTask
+              ? BorderSide(color: Colors.grey[300]!, width: 0.5)
+              : BorderSide.none,
         ),
         child: Slidable(
-          key: ValueKey(title + date), // Use todo.id for a truly unique key
+          key: ValueKey(_id), // Use the helper getter for unique key
           startActionPane: ActionPane(
             motion: const ScrollMotion(),
             children: [
@@ -244,20 +216,14 @@ class TodoCard<T> extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: isSubTask ? 0.0 : 4.0),
             child: ListTile(
               contentPadding: EdgeInsets.symmetric(
-                horizontal: 16.0, 
+                horizontal: 16.0,
                 vertical: isSubTask ? 0.0 : 4.0,
               ),
-              // leading: isSubTask
-              //     ? Icon(
-              //         Icons.subdirectory_arrow_right,
-              //         color: getPriorityColor(priority),
-              //       )
-              //     : null,
               onTap: () {
-                if(onTap != null) {
+                if (onTap != null) {
                   onTap!();
                   return;
-                }else if (!isSubTask) {
+                } else if (!isSubTask) {
                   // If it's not a subtask, navigate to the details page
                   Navigator.push(
                     context,
@@ -266,17 +232,10 @@ class TodoCard<T> extends StatelessWidget {
                     ),
                   );
                 }
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    // Pass the original index. If TaskDetailsPage could take Todo object or ID,
-                    // that would be even better for decoupled code.
-                    builder: (context) => TaskDetailsPage(taskIndex: originalIndex),
-                  ),
-                );
+                // The duplicate Navigator.push was removed as discussed before.
               },
               title: Text(
-                title,
+                _title, // Use the helper getter
                 style: TextStyle(
                   color: black,
                   fontWeight: isSubTask ? FontWeight.normal : FontWeight.bold,
@@ -289,9 +248,9 @@ class TodoCard<T> extends StatelessWidget {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (subtitle.isNotEmpty)
+                  if (_subtitle.isNotEmpty) // Use the helper getter
                     Text(
-                      subtitle,
+                      _subtitle,
                       style: TextStyle(
                         color: black,
                         fontSize: isSubTask ? 12 : 14,
@@ -301,7 +260,7 @@ class TodoCard<T> extends StatelessWidget {
                       softWrap: true,
                       maxLines: 2,
                     ),
-                  const SizedBox(height: 4),// Display the constructed deadline text
+                  const SizedBox(height: 4), // Display the constructed deadline text
                   if (deadlineText.isNotEmpty) // Only show if there's something to display
                     Text(
                       deadlineText,
@@ -314,21 +273,16 @@ class TodoCard<T> extends StatelessWidget {
                 ],
               ),
               trailing: Checkbox(
-                value: isDone,
+                value: _isDone, // Use the helper getter
                 activeColor: isCompleted ? Colors.grey[800] : Theme.of(context).colorScheme.secondary,
                 checkColor: Colors.white,
-                materialTapTargetSize: isSubTask 
+                materialTapTargetSize: isSubTask
                     ? MaterialTapTargetSize.shrinkWrap
                     : MaterialTapTargetSize.padded,
                 onChanged: (value) {
-                  // Use the specific onToggleCompletion callback
                   if (onToggleCompletion != null) {
                     onToggleCompletion!();
                   }
-                  // If you were using onUpdateFullTodo for toggling, it would look like this:
-                  // if (onUpdateFullTodo != null) {
-                  //   onUpdateFullTodo!(todo.copyWith(isDone: value ?? false));
-                  // }
                 },
               ),
             ),

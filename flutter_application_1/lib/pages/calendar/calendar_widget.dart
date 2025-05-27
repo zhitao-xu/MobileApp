@@ -51,14 +51,15 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   // Helper to get tasks for a given day
   List<Todo> _getTasksForDay(DateTime day) {
     return widget.tasks.where((todo) {
-    // Use the centralized parsing function
-    DateTime? parsedDeadline = parseTodoDeadline(todo.deadline);
+    // Directly use todo.deadline, which is already a DateTime?
+    // No need for parseTodoDeadline here anymore.
+    final DateTime? todoDeadline = todo.deadline;
 
     // If parsing was successful, compare the parsed date with the calendar day
-    return parsedDeadline != null &&
-           parsedDeadline.year == day.year &&
-           parsedDeadline.month == day.month &&
-           parsedDeadline.day == day.day;
+    return todoDeadline != null &&
+           todoDeadline.year == day.year &&
+           todoDeadline.month == day.month &&
+           todoDeadline.day == day.day;
     }).toList();
   }
 
@@ -181,14 +182,14 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                     // For safety, you might add a check or handle it, but it should ideally always be found.
                     if (originalIndex == -1) {
                       if (kDebugMode) {
-                        print("Warning: Task not found in main tasks list (id: ${task.title+task.date}) for calendar display.");
+                        print("Warning: Task not found in main tasks list (id: ${task.id}) for calendar display.");
                       }
                       // You might return a placeholder or skip this item.
                       return const SizedBox.shrink();
                     }
 
                     return TodoCard.forTodo(
-                      key: ValueKey(task.title+task.date), // Use unique ID as key for stability
+                      key: ValueKey(task.id), // Use unique ID as key for stability
                       todo: task,
                       originalIndex: originalIndex, // Pass the index the Bloc expects
                       onDelete: () => _removeTodo(task), // Call the Bloc's RemoveTodo

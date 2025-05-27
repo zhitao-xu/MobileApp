@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/data/todo.dart';
 import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
+import 'package:flutter_application_1/utils/todo_utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -183,12 +184,18 @@ Future<dynamic> addTaskDialog(BuildContext context) {
                         title: titleController.text.trim(),
                         subtitle: descriptionController.text.trim(),
                         priority: selectedPriority,
-                        deadline: [
-                          DateFormat('yyyy-MM-dd').format(selectedDeadline),
-                          DateFormat('HH:mm').format(selectedDeadline)
-                        ],
-                        remind: selectedReminder,
-                        date: DateTime.now().toString(),
+                        // Pass selectedDeadline directly as it's already a DateTime
+                        // If selectedDeadline can be null, it should be DateTime? in your UI logic
+                        // If selectedDeadline is always a DateTime, and you want to pass null when no deadline is set,
+                        // you'd need an 'if (selectedDeadline != null)' condition.
+                        // Assuming selectedDeadline is non-null when a deadline is chosen:
+                        deadline: selectedDeadline, // <--- DIRECTLY PASS DateTime
+
+                        // Parse selectedReminder string to DateTime?
+                        remindAt: parseReminderString(selectedReminder), // <--- Use parsed DateTime? (renamed 'remind' to 'remindAt')
+
+                        // Pass DateTime.now() directly for createdAt
+                        createdAt: DateTime.now(), // <--- DIRECTLY PASS DateTime (renamed 'date' to 'createdAt')
                       ),
                     );
                     titleController.text = '';

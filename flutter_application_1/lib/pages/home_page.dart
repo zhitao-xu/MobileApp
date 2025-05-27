@@ -93,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                     // Directly use TodoCard here
                     ...sortedPendingTodos.map((todo) =>
                         TodoCard.forTodo(
-                          key: ValueKey(todo.title + todo.date), // Unique key for efficiency
+                          key: ValueKey(todo.id), // Unique key for efficiency
                           todo: todo,
                           originalIndex: state.todos.indexOf(todo), // Pass the original index from the main list
                           onDelete: () => removeTodo(todo),
@@ -113,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                     // Directly use TodoCard here
                     ...sortedCompletedTodos.map((todo) =>
                         TodoCard.forTodo(
-                          key: ValueKey(todo.title + todo.date), // Unique key for efficiency
+                          key: ValueKey(todo.id), // Unique key for efficiency
                           todo: todo,
                           originalIndex: state.todos.indexOf(todo), // Pass the original index from the main list
                           onDelete: () => removeTodo(todo),
@@ -133,105 +133,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  /*
-  Widget buildTodoCard(Todo todo, int originalIndex) {
-    final isCompleted = todo.isDone;
-
-    final backgroundColor = isCompleted
-        ? Colors.grey[300]
-        : todo.priority == 'high'
-        ? Colors.red[200]
-        : todo.priority == 'medium'
-        ? Colors.orange[200]
-        : todo.priority == 'low'
-        ? Colors.yellow[100]
-        : Colors.white;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 0),
-        color: backgroundColor,
-        elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Slidable(
-          key: ValueKey(todo.title + todo.date), // Using title + date for a more unique key
-          startActionPane: ActionPane(
-            motion: const ScrollMotion(),
-            children: [
-              CustomSlidableAction(
-                onPressed: (_) => removeTodo(todo),
-                backgroundColor: const Color(0xFFFE4A49),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.delete, color: Colors.white),
-                    SizedBox(height: 4),
-                    Text('Delete', style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0), // Add padding for visual spacing
-            child: ListTile(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TaskDetailsPage(taskIndex: originalIndex),
-                  ),
-                );
-              },
-              title: Text(
-                todo.title,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-                // Added potential overflow handling for long titles
-                overflow: TextOverflow.ellipsis,
-                softWrap: true,
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    todo.subtitle,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 14,
-                    ),
-                    // Added potential overflow handling for long subtitles
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: true,
-                    maxLines: 2, // Added maxLines to prevent unbounded height in list
-                  ),
-                  // Keep the Deadline text
-                  const SizedBox(height: 4), // Keep spacing if deadline is shown
-                  Text(
-                    'Deadline: ${todo.deadline}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  // Removed remind and created text as they were un-needed
-                ],
-              ),
-              trailing: Checkbox(
-                value: todo.isDone,
-                activeColor: Theme.of(context).colorScheme.secondary,
-                onChanged: (value) => alertTodo(originalIndex),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }*/
 }

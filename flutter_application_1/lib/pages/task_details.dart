@@ -12,7 +12,6 @@ import '../data/todo.dart';
 import '../constants/tasks_constants.dart';
 import '../widget/todo/todo_card.dart';
 import '../widget/row_container.dart';
-import '../utils/todo_utils.dart';
 
 
 class TaskDetailsPage extends StatefulWidget {
@@ -128,7 +127,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     _deadlineDateController = TextEditingController(text: dateText);
     _deadlineTimeController = TextEditingController(text: timeText);
 
-    // Safely get reminder string from DateTime? remindAt
+    // Safely get reminder string from String remind
     _remindController = TextEditingController(text:_currentItem.remind);
     _repeatController = TextEditingController(text: _currentItem.repeat);
 
@@ -139,7 +138,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     // Initialize picked states based on parsed data
     _isDatePicked = dateText.isNotEmpty;
     _isTimePicked = timeText.isNotEmpty;
-    selectedReminder = _remindController.text;
+    // selectedReminder = _remindController.text;
     selectedRepeat = _repeatController.text;
   }
 
@@ -254,13 +253,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         Navigator.of(context).pop();
         return;
       }
-    } else {// Existing tasks
-      // IMPORTANT: Need to parse the current deadline/remindAt from _currentItem
-      // into the same string format as _deadlineDateController.text etc.
-      // to properly compare for changes.
-      // Assuming your Todo/SubTask models have getters for these formatted strings
-      // or you re-format them here.
-      // For now, I'll use the current controller texts as a proxy.
+    } else {
       final hasChanges = _titleController.text != _currentItem.title ||
         _subtitleController.text != _currentItem.subtitle ||
         _priorityController.text != _currentItem.priority ||
@@ -489,21 +482,6 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       _deadlineTimeController.text,
     );
 
-    // TODO: save DateTime remindAT
-    // String date = _deadlineDateController.text;
-    // String time = _deadlineTimeController.text;
-    // final DateTime? deadlineDateTime = formateDeadlineToDateTime(date, time);
-    // DateTime? parsedRemindAt;
-    // if(deadlineDateTime != null){
-    //   parsedRemindAt = convertReminderStringToDateTime(
-    //     _remindAtController.text, deadlineDateTime
-    //   );
-    // }else{
-    //   if(kDebugMode){
-    //     print("Deadline Date is empty");
-    //   }
-    // }
-
     if (widget.isSubTask) {
       // Subtask saving logic
       final updatedSubTask = (_currentItem as SubTask).copyWith(
@@ -513,8 +491,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         // Pass the parsed DateTime?
         deadline: parsedDeadline,
         // Pass the parsed DateTime?
+        remindAt: parsedDeadline!=null
+          ? convertReminderStringToDateTime(_remindController.text, parsedDeadline)
+          : null,
         remind: _remindController.text,
-        //TODO: reminAT
         repeat: _repeatController.text,
       );
 
@@ -538,7 +518,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         // Pass the parsed DateTime?
         deadline: parsedDeadline,
         // Pass the parsed DateTime?
-        // TODO: remindAT
+        remindAt: parsedDeadline!=null
+          ? convertReminderStringToDateTime(_remindController.text, parsedDeadline)
+          : null,
         // remindAt: parsedRemindAt, // Changed 'remind' to 'remindAt'
         remind: _remindController.text,
         repeat: _repeatController.text,

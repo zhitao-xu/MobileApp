@@ -47,7 +47,7 @@ class CustomAppBar extends StatelessWidget {
               // Search Icon
               GestureDetector(
                 child: Icon(
-                  CupertinoIcons.search,
+                  CupertinoIcons.slider_horizontal_3,
                   size: 40,
                   color: white,
                 ),

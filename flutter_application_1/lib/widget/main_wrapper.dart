@@ -17,6 +17,7 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   int _currentIndex = 0;
+  final GlobalKey<HomePageState> homePageKey = GlobalKey<HomePageState>();
 
   /*
   // The list of pages. Note that CalendarPage will now be initialized inside
@@ -36,6 +37,11 @@ class _MainWrapperState extends State<MainWrapper> {
       bottomNavigationBar: MainWrapperBottomNavBar(
         currentIndex: _currentIndex,
         onPageChanged: onPageChanged,
+        onTabPressed: (){
+          if(homePageKey.currentState != null){
+            homePageKey.currentState!.stopSearching();
+          }
+        },
       ),
       body: _mainWrapperBody(), // Now _mainWrapperBody handles the BlocBuilder and IndexedStack
     );
@@ -45,6 +51,11 @@ class _MainWrapperState extends State<MainWrapper> {
     setState(() {
       _currentIndex = page;
     });
+
+    if(page != 0 && homePageKey.currentContext != null){
+      homePageKey.currentState!.stopSearching();
+    }
+
     BlocProvider.of<BottomNav>(context).changeSelectedIndex(page);
   }
 
@@ -58,7 +69,7 @@ class _MainWrapperState extends State<MainWrapper> {
             // topLevPages was moved here
             // Dynamically create the list of pages with the current todos
             final List<Widget> pagesWithData = [
-              const HomePage(), // HomePage typically doesn't need to be recreated, as it gets its own BlocBuilder for filtering
+              HomePage(key: homePageKey), // HomePage typically doesn't need to be recreated, as it gets its own BlocBuilder for filtering
               CalendarPage(todos: allTodos), // Pass the todos here!
               AnalyticsPage(),
             ];
@@ -89,11 +100,13 @@ class _MainWrapperState extends State<MainWrapper> {
 class MainWrapperBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onPageChanged;
+  final VoidCallback? onTabPressed;
 
   const MainWrapperBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onPageChanged,
+    this.onTabPressed,
   });
 
   @override
@@ -145,9 +158,11 @@ class MainWrapperBottomNavBar extends StatelessWidget {
     required String label,
     required int currentIndex,
     required Function(int) onPageChanged,
+    final VoidCallback? onTabPressed,
   }) {
     return GestureDetector(
       onTap: () {
+        onTabPressed?.call();
         onPageChanged(page);
         if (kDebugMode) {
           print("Page changed to $page => $label");

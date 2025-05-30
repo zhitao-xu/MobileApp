@@ -1016,10 +1016,7 @@ Widget _buildTextField({
               controller: controllers[index],
               decoration: InputDecoration(
                 hintText: hints[index],
-                hintStyle: TextStyle(
-                  color: grey,
-                  fontStyle: FontStyle.italic,
-                ),
+                hintStyle: textHintStyle,
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
               ),

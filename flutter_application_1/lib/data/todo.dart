@@ -310,7 +310,7 @@ class Todo {
         'actualCompletionDate: $actualCompletionDate,\n'
         'remindAt: $remindAt,\n'
         'repeat: $repeat,\n'
-        'remind: $remind,\n'
+        'remind: $remind\n'
         'tags: $tags,\n'
         'subtasks: $subtasks)\n\n';
   }

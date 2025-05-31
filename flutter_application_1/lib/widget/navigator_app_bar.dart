@@ -54,7 +54,7 @@ class NavigatorAppBar extends StatelessWidget {
                 style: homeTitleStyle,
               ),
               const Spacer(),
-              widget ?? const SizedBox(),
+              widget ?? const SizedBox(width: 60, height: 50,),
             ],
           ),
         ),

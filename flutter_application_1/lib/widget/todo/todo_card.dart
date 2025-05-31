@@ -1,14 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/data/todo.dart'; // Import your Todo and SubTask models
+import 'package:flutter_application_1/data/todo.dart';
 import 'package:flutter_application_1/pages/task_details.dart';
-import 'package:flutter_application_1/utils/theme.dart'; // For your custom colors
+import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
-// --- REMOVE TaskItem abstract class ---
-// --- REMOVE TodoAsTaskItem and SubTaskAsTaskItem extensions ---
-
-class TodoCard<T> extends StatelessWidget {
+class TodoCard<T> extends StatefulWidget {
   final T item; // Can be Todo or SubTask
   final int originalIndex;
   final VoidCallback? onToggleCompletion;
@@ -16,8 +14,12 @@ class TodoCard<T> extends StatelessWidget {
   final void Function(T updatedItem)? onUpdateFullItem;
   final bool showDate;
   final bool showTime;
-  final bool isSubTask; // Flag to determine if this is a subtask
+  final bool isSubTask;
   final VoidCallback? onTap; // Custom tap handler for subtasks
+  final bool hasSubtasks;
+  final VoidCallback? onToggleSubtaskVisibility;
+  final void Function(SubTask, int)? onSubTaskToggleCompletion;
+  final void Function(SubTask, int)? onSubTaskDelete;
 
   const TodoCard({
     super.key,
@@ -30,9 +32,13 @@ class TodoCard<T> extends StatelessWidget {
     this.showTime = true,
     this.isSubTask = false,
     this.onTap,
+    this.hasSubtasks = false,
+    this.onToggleSubtaskVisibility,
+    this.onSubTaskToggleCompletion,
+    this.onSubTaskDelete,
   });
 
-  // Factory constructors for easier usage - No changes here, still works
+  // Factory constructors for easier usage
   static TodoCard<Todo> forTodo({
     Key? key,
     required Todo todo,
@@ -43,6 +49,10 @@ class TodoCard<T> extends StatelessWidget {
     bool showDate = true,
     bool showTime = true,
     VoidCallback? onTap,
+    bool hasSubtasks = false,
+    VoidCallback? onToggleSubtaskVisibility,
+    void Function(SubTask, int)? onSubTaskToggleCompletion,
+    void Function(SubTask, int)? onSubTaskDelete,
   }) {
     return TodoCard<Todo>(
       key: key,
@@ -55,6 +65,10 @@ class TodoCard<T> extends StatelessWidget {
       showTime: showTime,
       isSubTask: false,
       onTap: onTap,
+      hasSubtasks: hasSubtasks,
+      onToggleSubtaskVisibility: onToggleSubtaskVisibility,
+      onSubTaskToggleCompletion: onSubTaskToggleCompletion,
+      onSubTaskDelete: onSubTaskDelete,
     );
   }
 
@@ -80,214 +94,370 @@ class TodoCard<T> extends StatelessWidget {
       showTime: showTime,
       isSubTask: true,
       onTap: onTap,
+      hasSubtasks: false,
+      onToggleSubtaskVisibility: null,
     );
   }
 
+  @override
+  State<TodoCard<T>> createState() => _TodoCardState<T>();
+}
+
+class _TodoCardState<T> extends State<TodoCard<T>> {
+  bool _showSubtasks = false;
+
   // Helper methods to access properties regardless of type
-  // These are crucial for type safety inside the build method
-  String get _id { // Renamed to _id to avoid conflict if `id` is a getter on `item`
-    if (item is Todo) {
-      return (item as Todo).id;
-    } else if (item is SubTask) {
-      return (item as SubTask).id;
+  String get _id {
+    if (widget.item is Todo) {
+      return (widget.item as Todo).id;
+    } else if (widget.item is SubTask) {
+      return (widget.item as SubTask).id;
     }
-    return ''; // Should not happen with valid Todo/SubTask
+    return '';
   }
 
   String get _title {
-    if (item is Todo) {
-      return (item as Todo).title;
-    } else if (item is SubTask) {
-      return (item as SubTask).title;
+    if (widget.item is Todo) {
+      return (widget.item as Todo).title;
+    } else if (widget.item is SubTask) {
+      return (widget.item as SubTask).title;
     }
     return '';
   }
 
   String get _subtitle {
-    if (item is Todo) {
-      return (item as Todo).subtitle;
-    } else if (item is SubTask) {
-      return (item as SubTask).subtitle;
+    if (widget.item is Todo) {
+      return (widget.item as Todo).subtitle;
+    } else if (widget.item is SubTask) {
+      return (widget.item as SubTask).subtitle;
     }
     return '';
   }
 
   bool get _isDone {
-    if (item is Todo) {
-      return (item as Todo).isDone;
-    } else if (item is SubTask) {
-      return (item as SubTask).isDone;
+    if (widget.item is Todo) {
+      return (widget.item as Todo).isDone;
+    } else if (widget.item is SubTask) {
+      return (widget.item as SubTask).isDone;
     }
     return false;
   }
 
   String get _priority {
-    if (item is Todo) {
-      return (item as Todo).priority;
-    } else if (item is SubTask) {
-      return (item as SubTask).priority;
+    if (widget.item is Todo) {
+      return (widget.item as Todo).priority;
+    } else if (widget.item is SubTask) {
+      return (widget.item as SubTask).priority;
     }
     return '';
   }
 
-  // Now correctly returns DateTime?
   DateTime? get _deadline {
-    if (item is Todo) {
-      return (item as Todo).deadline;
-    } else if (item is SubTask) {
-      return (item as SubTask).deadline;
+    if (widget.item is Todo) {
+      return (widget.item as Todo).deadline;
+    } else if (widget.item is SubTask) {
+      return (widget.item as SubTask).deadline;
     }
     return null;
   }
 
-  // Now correctly returns DateTime (createdAt property)
-  DateTime get _createdAt { // Renamed from 'date' to 'createdAt' to match your model
-    if (item is Todo) {
-      return (item as Todo).createdAt;
-    } else if (item is SubTask) {
-      return (item as SubTask).createdAt;
+  DateTime get _createdAt {
+    if (widget.item is Todo) {
+      return (widget.item as Todo).createdAt;
+    } else if (widget.item is SubTask) {
+      return (widget.item as SubTask).createdAt;
     }
-    return DateTime.now(); // Fallback: should ideally always have a createdAt
+    return DateTime.now();
   }
 
+  List<SubTask> get _subtasks {
+    if (widget.item is Todo) {
+      return (widget.item as Todo).subtasks;
+    }
+    return [];
+  }
+
+  int daysFromToday(DateTime date) {
+    DateTime now = DateTime.now();
+    DateTime today = DateTime(now.year, now.month, now.day);
+    DateTime target = DateTime(date.year, date.month, date.day);
+
+    return target.difference(today).inDays;
+  }
+
+  void _toggleSubtaskVisibility() {
+    setState(() {
+      _showSubtasks = !_showSubtasks;
+    });
+    if (widget.onToggleSubtaskVisibility != null) {
+      widget.onToggleSubtaskVisibility!();
+    }
+  }
+
+  void openDetailsPage(BuildContext context) async {
+    if (widget.onTap != null) {
+      widget.onTap!();
+      return;
+    }
+    
+    if (!widget.isSubTask) {
+      if (!context.mounted) return;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TaskDetailsPage(taskIndex: widget.originalIndex),
+        ),
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TaskDetailsPage(taskIndex: widget.originalIndex, isSubTask: false),
+      ),
+    ).then((_) {
+      if (!context.mounted) return;
+      Navigator.push(
+        context, 
+        MaterialPageRoute(
+          builder: (context) => TaskDetailsPage(
+            taskIndex: widget.originalIndex, 
+            isSubTask: true,
+          ),
+        ),  
+      );
+    });
+  }
+
+  Widget _buildSubtasksList() {
+    if (!_showSubtasks || _subtasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        const Divider(height: 1, thickness: 0.5),
+        ...List.generate(_subtasks.length, (index) {
+          final subtask = _subtasks[index];
+          return TodoCard<SubTask>(
+            item: subtask,
+            originalIndex: widget.originalIndex,
+            onToggleCompletion: widget.onSubTaskToggleCompletion != null
+                ? () => widget.onSubTaskToggleCompletion!(subtask, index)
+                : null,
+            onDelete: widget.onSubTaskDelete != null
+                ? () => widget.onSubTaskDelete!(subtask, index)
+                : null,
+            showDate: widget.showDate,
+            showTime: widget.showTime,
+            isSubTask: true,
+            hasSubtasks: false,
+            onToggleSubtaskVisibility: null,
+          );
+        }),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isCompleted = _isDone; // Use the helper getter
-
+    final isCompleted = _isDone;
     final backgroundColor = isCompleted
         ? Colors.grey[300]
-        : getPriorityColor(_priority); // Use the helper getter
+        : getPriorityColor(_priority);
 
-    // Directly use the _deadline getter which returns DateTime?
     DateTime? currentDeadline = _deadline;
-
-    // Build the deadline string based on showDate and showTime flags
     String deadlineText = '';
+
     if (currentDeadline != null) {
-      if (showDate && showTime) {
-        deadlineText = 'Deadline: ${DateFormat('dd-MM-yyyy HH:mm').format(currentDeadline)}';
-      } else if (showDate) {
-        deadlineText = 'Deadline: ${DateFormat('dd-MM-yyyy').format(currentDeadline)}';
-      } else if (showTime) {
-        deadlineText = 'Deadline: ${DateFormat('HH:mm').format(currentDeadline)}';
-      } else {
-        deadlineText = 'Deadline set'; // Minimal indicator
+      int nDaysFromToday = daysFromToday(currentDeadline);
+
+      String? dayLabel;
+      if (nDaysFromToday == -1) {
+        dayLabel = 'Yesterday';
+      } else if (nDaysFromToday == 0) {
+        dayLabel = 'Today';
+      } else if (nDaysFromToday == 1) {
+        dayLabel = 'Tomorrow';
       }
-    } else {
-      deadlineText = 'No deadline';
+
+      if (widget.showDate && widget.showTime) {
+        if (dayLabel == null) {
+          deadlineText = DateFormat('dd-MM-yyyy, HH:mm').format(currentDeadline);
+        } else {
+          deadlineText = '$dayLabel , ${DateFormat('HH:mm').format(currentDeadline)}';
+        }
+      } else if (widget.showDate) {
+        deadlineText = dayLabel ?? DateFormat('dd-MM-yyyy').format(currentDeadline);
+      } else if (widget.showTime) {
+        deadlineText = DateFormat('HH:mm').format(currentDeadline);
+      } else {
+        deadlineText = 'Deadline set';
+      }
     }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
-      child: Card(
-        margin: EdgeInsets.symmetric(
-          vertical: isSubTask ? 3.0 : 6.0,
-          horizontal: isSubTask ? 8.0 : 0.0,
-        ),
-        color: backgroundColor,
-        elevation: isSubTask ? 0.5 : 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: isSubTask
-              ? BorderSide(color: Colors.grey[300]!, width: 0.5)
-              : BorderSide.none,
-        ),
-        child: Slidable(
-          key: ValueKey(_id), // Use the helper getter for unique key
-          startActionPane: ActionPane(
-            motion: const ScrollMotion(),
-            children: [
-              CustomSlidableAction(
-                onPressed: onDelete != null ? (_) => onDelete!() : null,
-                backgroundColor: const Color(0xFFFE4A49),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.delete, color: white),
-                    SizedBox(height: 4),
-                    Text('Delete', style: TextStyle(color: white)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: isSubTask ? 0.0 : 4.0),
-            child: ListTile(
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: isSubTask ? 0.0 : 4.0,
-              ),
-              onTap: () {
-                if (onTap != null) {
-                  onTap!();
-                  return;
-                } else if (!isSubTask) {
-                  // If it's not a subtask, navigate to the details page
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TaskDetailsPage(taskIndex: originalIndex),
-                    ),
-                  );
-                }
-                // The duplicate Navigator.push was removed as discussed before.
-              },
-              title: Text(
-                _title, // Use the helper getter
-                style: TextStyle(
-                  color: black,
-                  fontWeight: isSubTask ? FontWeight.normal : FontWeight.bold,
-                  fontSize: isSubTask ? 14 : 16,
-                  decoration: isCompleted ? TextDecoration.lineThrough : null,
-                ),
-                overflow: TextOverflow.ellipsis,
-                softWrap: true,
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        children: [
+          Card(
+            margin: EdgeInsets.symmetric(
+              vertical: widget.isSubTask ? 3.0 : 6.0,
+              horizontal: widget.isSubTask ? 8.0 : 0.0,
+            ),
+            color: backgroundColor,
+            elevation: widget.isSubTask ? 0.5 : 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: widget.isSubTask
+                  ? BorderSide(color: Colors.grey[300]!, width: 0.5)
+                  : BorderSide.none,
+            ),
+            child: Slidable(
+              key: ValueKey(_id),
+              startActionPane: ActionPane(
+                motion: const ScrollMotion(),
                 children: [
-                  if (_subtitle.isNotEmpty) // Use the helper getter
-                    Text(
-                      _subtitle,
-                      style: TextStyle(
-                        color: black,
-                        fontSize: isSubTask ? 12 : 14,
-                        decoration: isCompleted ? TextDecoration.lineThrough : null,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: true,
-                      maxLines: 2,
+                  CustomSlidableAction(
+                    onPressed: widget.onDelete != null ? (_) => widget.onDelete!() : null,
+                    backgroundColor: const Color(0xFFFE4A49),
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.delete, color: white),
+                        SizedBox(height: 4),
+                        Text('Delete', style: TextStyle(color: white)),
+                      ],
                     ),
-                  const SizedBox(height: 4), // Display the constructed deadline text
-                  if (deadlineText.isNotEmpty) // Only show if there's something to display
-                    Text(
-                      deadlineText,
-                      style: TextStyle(
-                        fontSize: isSubTask ? 10 : 12,
-                        color: isCompleted ? Colors.grey[600] : Colors.grey[700],
-                        decoration: isCompleted ? TextDecoration.lineThrough : null,
+                  ),
+                ],
+              ),
+              endActionPane: ActionPane(
+                motion: const ScrollMotion(),
+                children: [
+                  if (!isCompleted)
+                    CustomSlidableAction(
+                      onPressed: widget.onToggleCompletion != null
+                        ? (context) => widget.onToggleCompletion!()
+                        : null,
+                      backgroundColor: green,
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(CupertinoIcons.checkmark_alt_circle_fill, color: white),
+                          SizedBox(height: 4),
+                          Text('Complete', style: TextStyle(color: white)),
+                        ],
+                      ),
+                    ),
+                  if (isCompleted)
+                    CustomSlidableAction(
+                      onPressed: widget.onToggleCompletion != null
+                        ? (context) => widget.onToggleCompletion!()
+                        : null,
+                      backgroundColor: orange,
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(CupertinoIcons.refresh_circled_solid, color: white),
+                          SizedBox(height: 4),
+                          Text('Undo', style: TextStyle(color: white)),
+                        ],
                       ),
                     ),
                 ],
               ),
-              trailing: Checkbox(
-                value: _isDone, // Use the helper getter
-                activeColor: isCompleted ? Colors.grey[800] : Theme.of(context).colorScheme.secondary,
-                checkColor: Colors.white,
-                materialTapTargetSize: isSubTask
-                    ? MaterialTapTargetSize.shrinkWrap
-                    : MaterialTapTargetSize.padded,
-                onChanged: (value) {
-                  if (onToggleCompletion != null) {
-                    onToggleCompletion!();
-                  }
-                },
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: widget.isSubTask ? 0.0 : 4.0),
+                child: ListTile(
+                  contentPadding: EdgeInsets.only(
+                    top: widget.isSubTask ? 0.0 : 4.0,
+                    bottom: widget.isSubTask ? 0.0 : 4.0,
+                  ),
+
+                  onTap: () => openDetailsPage(context),
+                  
+                  leading: Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: SizedBox(
+                      width: 50.0,
+                      child: GestureDetector(
+                        onTap: widget.onToggleCompletion,
+                        behavior: HitTestBehavior.translucent,
+                        child: Center(
+                          child: isCompleted
+                              ? const Icon(CupertinoIcons.largecircle_fill_circle, size: 20.0)
+                              : const Icon(CupertinoIcons.circle, size: 20.0),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  title: Text(
+                    _title,
+                    style: TextStyle(
+                      color: black,
+                      fontWeight: widget.isSubTask ? FontWeight.normal : FontWeight.bold,
+                      fontSize: widget.isSubTask ? 14 : 16,
+                      decoration: isCompleted ? TextDecoration.lineThrough : null,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_subtitle.isNotEmpty)
+                        Text(
+                          _subtitle,
+                          style: TextStyle(
+                            color: black,
+                            fontSize: widget.isSubTask ? 12 : 14,
+                            decoration: isCompleted ? TextDecoration.lineThrough : null,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          maxLines: 2,
+                        ),
+                      const SizedBox(height: 4),
+                      if (deadlineText.isNotEmpty)
+                        Text(
+                          deadlineText,
+                          style: TextStyle(
+                            fontSize: widget.isSubTask ? 10 : 12,
+                            color: isCompleted ? Colors.grey[600] : Colors.grey[700],
+                            decoration: isCompleted ? TextDecoration.lineThrough : null,
+                          ),
+                        ),
+                    ],
+                  ),
+                  trailing: widget.isSubTask
+                    ? null
+                    : widget.hasSubtasks && _subtasks.isNotEmpty
+                      ? Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: IconButton(
+                          onPressed: _toggleSubtaskVisibility, 
+                          color: black,
+                          icon: Icon(
+                            _showSubtasks 
+                              ? CupertinoIcons.chevron_up 
+                              : CupertinoIcons.chevron_down
+                          ),
+                          iconSize: 20,
+                          ),
+                      )
+                      : const SizedBox(width: 20.0)
+                ),
               ),
             ),
           ),
-        ),
+          // Show subtasks if toggled on and not a subtask itself
+          if (!widget.isSubTask) _buildSubtasksList(),
+        ],
       ),
     );
   }

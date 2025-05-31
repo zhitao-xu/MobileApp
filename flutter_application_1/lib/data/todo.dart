@@ -154,15 +154,15 @@ class SubTask {
 
 
 class Todo {
-  final String id; // New: Unique ID
+  final String id;
   final String title;
   final String subtitle;
   bool isDone;
   String priority;
-  DateTime? deadline; // Already DateTime? - perfect!
-  DateTime createdAt; // Already DateTime - perfect!
-  DateTime? actualCompletionDate; // Already DateTime? - perfect!
-  DateTime? remindAt; // Already DateTime? - perfect!
+  DateTime? deadline;
+  DateTime createdAt;
+  DateTime? actualCompletionDate;
+  DateTime? remindAt;
   String repeat;
   String remind;
   List<String> tags;

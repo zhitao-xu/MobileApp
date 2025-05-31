@@ -687,8 +687,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       child: SizedBox.expand(
         child: Padding(
           padding: const EdgeInsets.only(top: 14.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
             children:[
               
               // DATE SECTION

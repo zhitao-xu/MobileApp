@@ -229,13 +229,24 @@ class HomePageState extends State<HomePage> {
                                 ),
                               ),
                               ...todosToShow.map((todo) =>
-                                  TodoCard.forTodo(
-                                    key: ValueKey(todo.id),
-                                    todo: todo,
-                                    originalIndex: state.todos.indexOf(todo),
-                                    onDelete: () => removeTodo(todo),
-                                    onToggleCompletion: () => alertTodo(state.todos.indexOf(todo)),
-                                  ),
+                                TodoCard.forTodo(
+                                  key: ValueKey(todo.id),
+                                  todo: todo,
+                                  originalIndex: state.todos.indexOf(todo),
+                                  onDelete: () => removeTodo(todo),
+                                  onToggleCompletion: () => alertTodo(state.todos.indexOf(todo)),
+                                  hasSubtasks: todo.subtasks.isNotEmpty,
+                                  onSubTaskToggleCompletion: (subtask, subTaskIndex){
+                                    context.read<TodoBloc>().add(
+                                      CompleteSubTask(state.todos.indexOf(todo), subTaskIndex),
+                                    );
+                                  },
+                                  onSubTaskDelete: (subtask, subTaskIndex){
+                                    context.read<TodoBloc>().add(
+                                      RemoveSubTask(state.todos.indexOf(todo), subTaskIndex),
+                                    );
+                                  }
+                                ),
                               ),
                             ],
                           );
@@ -266,13 +277,24 @@ class HomePageState extends State<HomePage> {
                                 ),
                                 // Directly use TodoCard here
                                 ...sortedPendingTodos.map((todo) =>
-                                    TodoCard.forTodo(
-                                      key: ValueKey(todo.id), // Unique key for efficiency
-                                      todo: todo,
-                                      originalIndex: state.todos.indexOf(todo), // Pass the original index from the main list
-                                      onDelete: () => removeTodo(todo),
-                                      onToggleCompletion: () => alertTodo(state.todos.indexOf(todo)),
-                                    ),
+                                  TodoCard.forTodo(
+                                    key: ValueKey(todo.id), // Unique key for efficiency
+                                    todo: todo,
+                                    originalIndex: state.todos.indexOf(todo), // Pass the original index from the main list
+                                    onDelete: () => removeTodo(todo),
+                                    onToggleCompletion: () => alertTodo(state.todos.indexOf(todo)),
+                                    hasSubtasks: todo.subtasks.isNotEmpty,
+                                    onSubTaskToggleCompletion: (subtask, subTaskIndex){
+                                      context.read<TodoBloc>().add(
+                                        CompleteSubTask(state.todos.indexOf(todo), subTaskIndex),
+                                      );
+                                    },
+                                    onSubTaskDelete: (subtask, subTaskIndex){
+                                      context.read<TodoBloc>().add(
+                                        RemoveSubTask(state.todos.indexOf(todo), subTaskIndex),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ],
                               if (sortedCompletedTodos.isNotEmpty) ...[
@@ -286,13 +308,24 @@ class HomePageState extends State<HomePage> {
                                 ),
                                 // Directly use TodoCard here
                                 ...sortedCompletedTodos.map((todo) =>
-                                    TodoCard.forTodo(
-                                      key: ValueKey(todo.id), // Unique key for efficiency
-                                      todo: todo,
-                                      originalIndex: state.todos.indexOf(todo), // Pass the original index from the main list
-                                      onDelete: () => removeTodo(todo),
-                                      onToggleCompletion: () => alertTodo(state.todos.indexOf(todo)),
-                                    ),
+                                  TodoCard.forTodo(
+                                    key: ValueKey(todo.id), // Unique key for efficiency
+                                    todo: todo,
+                                    originalIndex: state.todos.indexOf(todo), // Pass the original index from the main list
+                                    onDelete: () => removeTodo(todo),
+                                    onToggleCompletion: () => alertTodo(state.todos.indexOf(todo)),
+                                    hasSubtasks: todo.subtasks.isNotEmpty,
+                                    onSubTaskToggleCompletion: (subtask, subTaskIndex){
+                                      context.read<TodoBloc>().add(
+                                        CompleteSubTask(state.todos.indexOf(todo), subTaskIndex),
+                                      );
+                                    },
+                                    onSubTaskDelete: (subtask, subTaskIndex){
+                                      context.read<TodoBloc>().add(
+                                        RemoveSubTask(state.todos.indexOf(todo), subTaskIndex),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ],
                             ],

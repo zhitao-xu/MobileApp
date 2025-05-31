@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/settings_page.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:intl/intl.dart';
 
@@ -32,10 +33,14 @@ class CustomAppBar extends StatelessWidget {
                 backgroundColor: white,
                 child: GestureDetector(
                   onTap: () {
-                    // go to settings page
                     if (kDebugMode) {
                       print('Setting Icon Tapped');
                     }
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SettingsPage()),
+                    );
                   },
                   child: Icon(
                     CupertinoIcons.settings,
@@ -52,8 +57,7 @@ class CustomAppBar extends StatelessWidget {
                   color: white,
                 ),
                 onTap: () {
-                  // go to search page
-                  // print('Search Icon Tapped');
+                  // filter pop up menu
                   
                 },
               )

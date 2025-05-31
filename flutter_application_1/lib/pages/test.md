@@ -6,10 +6,7 @@ appBar: PreferredSize(
         widget: Row(
             children: [
                 TextButton(
-                    onPressed: () =>{
-                    _saveTask,
-                    await _handleBackNavigation(),
-                    },
+                    onPressed: _saveTask,
                     child: const Text(
                     "Done",
                     style: TextStyle(
@@ -25,8 +22,9 @@ appBar: PreferredSize(
 
 
 Future<void> _handleBackNavigation() async{
-    // New tasks 
+     
     if(widget.taskIndex == null){
+      // New tasks
       final hasContent = _titleController.text.isNotEmpty ||
         _subtitleController.text.isNotEmpty ||
         _priorityController.text != tasksPriority[0] ||
@@ -40,6 +38,7 @@ Future<void> _handleBackNavigation() async{
         return;
       }
     } else {
+      // existing tasks
       final hasChanges = _titleController.text != _currentItem.title ||
         _subtitleController.text != _currentItem.subtitle ||
         _priorityController.text != _currentItem.priority ||
@@ -159,7 +158,6 @@ Future<void> _handleBackNavigation() async{
         // remindAt: parsedRemindAt, // Changed 'remind' to 'remindAt'
         remind: _remindController.text,
         repeat: _repeatController.text,
-        tags: [], // Assuming tags are not controlled by a TextEditingController here
       );
 
       if (widget.taskIndex != null) {
@@ -170,5 +168,5 @@ Future<void> _handleBackNavigation() async{
     }
     
     // Navigate back
-    // Navigator.pop(context);
+    Navigator.pop(context);
   }

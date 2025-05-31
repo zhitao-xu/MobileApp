@@ -239,8 +239,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   }
 
   Future<void> _handleBackNavigation() async{
-    // New tasks 
+     
     if(widget.taskIndex == null){
+      // New tasks
       final hasContent = _titleController.text.isNotEmpty ||
         _subtitleController.text.isNotEmpty ||
         _priorityController.text != tasksPriority[0] ||
@@ -254,6 +255,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         return;
       }
     } else {
+      // existing tasks
       final hasChanges = _titleController.text != _currentItem.title ||
         _subtitleController.text != _currentItem.subtitle ||
         _priorityController.text != _currentItem.priority ||
@@ -510,21 +512,28 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         context.read<TodoBloc>().add(AddSubTask(widget.taskIndex!, updatedSubTask));
       }
     } else {
-      // Todo task saving logic
-      final updatedTodo = (_currentItem as Todo).copyWith(
+      // Todo task saving logic - need to get the latest task data before saving
+      final currentState = context.read<TodoBloc>().state;
+      Todo currentTaskData;
+
+      if(widget.taskIndex != null && currentState.status == TodoStatus.success){
+        currentTaskData = currentState.todos[widget.taskIndex!]; // existing task
+      }else{
+        currentTaskData = _currentItem as Todo; // new task
+      }
+      
+
+      final updatedTodo = currentTaskData.copyWith(
         title: _titleController.text,
         subtitle: _subtitleController.text,
         priority: _priorityController.text,
-        // Pass the parsed DateTime?
         deadline: parsedDeadline,
-        // Pass the parsed DateTime?
         remindAt: parsedDeadline!=null
           ? convertReminderStringToDateTime(_remindController.text, parsedDeadline)
           : null,
-        // remindAt: parsedRemindAt, // Changed 'remind' to 'remindAt'
         remind: _remindController.text,
         repeat: _repeatController.text,
-        tags: [], // Assuming tags are not controlled by a TextEditingController here
+        // subtasks are preservveed from currentTaskData
       );
 
       if (widget.taskIndex != null) {

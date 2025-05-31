@@ -200,36 +200,29 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
       return;
     }
     
-    if (!widget.isSubTask) {
+    if (widget.isSubTask) {
       if (!context.mounted) return;
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => TaskDetailsPage(taskIndex: widget.originalIndex),
+          builder: (context) => TaskDetailsPage(
+            taskIndex: widget.originalIndex,
+            isSubTask: true,
+            subTaskIndex: 0, // TODO
+          ),
         ),
       );
       return;
     }
 
     if (!context.mounted) return;
-
-    Navigator.push(
+    await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => TaskDetailsPage(taskIndex: widget.originalIndex, isSubTask: false),
-      ),
-    ).then((_) {
-      if (!context.mounted) return;
-      Navigator.push(
-        context, 
-        MaterialPageRoute(
-          builder: (context) => TaskDetailsPage(
-            taskIndex: widget.originalIndex, 
-            isSubTask: true,
-          ),
-        ),  
-      );
-    });
+      MaterialPageRoute(builder: (context) => TaskDetailsPage(
+        taskIndex: widget.originalIndex, 
+        isSubTask: false,
+      )),
+    );
   }
 
   Widget _buildSubtasksList() {
@@ -243,6 +236,18 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
         ...List.generate(_subtasks.length, (index) {
           final subtask = _subtasks[index];
           return TodoCard<SubTask>(
+            onTap: () {
+              if(!context.mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TaskDetailsPage(
+                  taskIndex: widget.originalIndex,
+                  isSubTask: true,
+                  subTaskIndex: index,
+                  showParentAfterBack: true,
+                ))
+              );
+            },
             item: subtask,
             originalIndex: widget.originalIndex,
             onToggleCompletion: widget.onSubTaskToggleCompletion != null
@@ -306,7 +311,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
           Card(
             margin: EdgeInsets.symmetric(
               vertical: widget.isSubTask ? 3.0 : 6.0,
-              horizontal: widget.isSubTask ? 8.0 : 0.0,
+              horizontal: widget.isSubTask ? 12.0 : 0.0,
             ),
             color: backgroundColor,
             elevation: widget.isSubTask ? 0.5 : 1,
@@ -396,20 +401,20 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                     ),
                   ),
                   
-                  title: Text(
-                    _title,
-                    style: TextStyle(
-                      color: black,
-                      fontWeight: widget.isSubTask ? FontWeight.normal : FontWeight.bold,
-                      fontSize: widget.isSubTask ? 14 : 16,
-                      decoration: isCompleted ? TextDecoration.lineThrough : null,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: true,
-                  ),
-                  subtitle: Column(
+                  title: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        _title,
+                        style: TextStyle(
+                          color: black,
+                          fontWeight: widget.isSubTask ? FontWeight.normal : FontWeight.bold,
+                          fontSize: widget.isSubTask ? 14 : 16,
+                          decoration: isCompleted ? TextDecoration.lineThrough : null,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
+                      ),
                       if (_subtitle.isNotEmpty)
                         Text(
                           _subtitle,
@@ -422,7 +427,6 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                           softWrap: true,
                           maxLines: 2,
                         ),
-                      const SizedBox(height: 4),
                       if (deadlineText.isNotEmpty)
                         Text(
                           deadlineText,
@@ -434,6 +438,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                         ),
                     ],
                   ),
+                  subtitle: null,
                   trailing: widget.isSubTask
                     ? null
                     : widget.hasSubtasks && _subtasks.isNotEmpty

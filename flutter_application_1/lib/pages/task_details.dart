@@ -18,8 +18,15 @@ class TaskDetailsPage extends StatefulWidget {
   final int? taskIndex;
   final int? subTaskIndex;
   final bool isSubTask;
+  final bool showParentAfterBack;
 
-  const TaskDetailsPage({super.key, this.taskIndex, this.subTaskIndex, this.isSubTask = false});
+  const TaskDetailsPage({
+    super.key, 
+    this.taskIndex, 
+    this.subTaskIndex, 
+    this.isSubTask = false,
+    this.showParentAfterBack = false,
+  });
 
   @override
   State<TaskDetailsPage> createState() => _TaskDetailsPageState();
@@ -265,13 +272,41 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         _repeatController.text != _currentItem.repeat;
 
       if (!hasChanges) {
-        Navigator.of(context).pop();
+        // For subtasks with cascading navigation enabled TODO
+        if(widget.isSubTask && widget.showParentAfterBack){
+          Navigator.of(context).pushReplacement(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(
+                taskIndex: widget.taskIndex,
+                isSubTask: false,
+                showParentAfterBack: false,
+              ),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                // This will naturally feel like a back navigation
+                const begin = Offset(-1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
+                
+                var tween = Tween(begin: begin, end: end).chain(
+                  CurveTween(curve: curve),
+                );
+                
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 300),
+              reverseTransitionDuration: const Duration(milliseconds: 300),
+            ),
+          );
+        } else {
+          Navigator.pop(context);
+        }
         return;
       }
     }
 
-    final navigator = Navigator.of(context);
-    
     final result = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -299,7 +334,39 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
     // If result is true, user chose to discard changes
     if (result == true) {
-      navigator.pop();
+      // handle cascading navigation even when discarding changes TODO
+      if(widget.isSubTask && widget.showParentAfterBack){ 
+        if(!mounted) return;
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(
+              taskIndex: widget.taskIndex,
+              isSubTask: false,
+              showParentAfterBack: false,
+            ),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              // This will naturally feel like a back navigation
+              const begin = Offset(-1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOut;
+              
+              var tween = Tween(begin: begin, end: end).chain(
+                CurveTween(curve: curve),
+              );
+              
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 300),
+            reverseTransitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
+      } else {
+        if(!mounted) return;
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -543,8 +610,37 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       }
     }
     
-    // Navigate back
-    Navigator.pop(context);
+    // Navigate back TODO
+    if(widget.isSubTask && widget.showParentAfterBack){
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(
+            taskIndex: widget.taskIndex,
+            isSubTask: false,
+            showParentAfterBack: false,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // This will naturally feel like a back navigation
+            const begin = Offset(-1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+            
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+          reverseTransitionDuration: const Duration(milliseconds: 300),
+        ),
+      );
+    } else {
+      Navigator.pop(context);
+    }
   }
 
   // Method to show pop up options

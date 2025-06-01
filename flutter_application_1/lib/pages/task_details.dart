@@ -818,8 +818,13 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
           reverseTransitionDuration: const Duration(milliseconds: 300),
         ),
       );
-    } else {
-      Navigator.pop(context);
+    } else if(!widget.isSubTask){
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const HomePage()), 
+        (Route<dynamic> route) => false,
+      );
+    }else{
+      Navigator.of(context).pop();
     }
   }
 

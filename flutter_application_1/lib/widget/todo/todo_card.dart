@@ -276,10 +276,10 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
 
     DateTime? currentDeadline = _deadline;
     String deadlineText = '';
+    int nDaysFromToday = 0;
 
     if (currentDeadline != null) {
-      int nDaysFromToday = daysFromToday(currentDeadline);
-
+      nDaysFromToday =  daysFromToday(currentDeadline);
       String? dayLabel;
       if (nDaysFromToday == -1) {
         dayLabel = 'Yesterday';
@@ -432,7 +432,11 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                           deadlineText,
                           style: TextStyle(
                             fontSize: widget.isSubTask ? 10 : 12,
-                            color: isCompleted ? Colors.grey[600] : Colors.grey[700],
+                            color: nDaysFromToday<0 
+                              ? red 
+                              : nDaysFromToday == 0
+                                ? orange
+                                : grey,
                             decoration: isCompleted ? TextDecoration.lineThrough : null,
                           ),
                         ),

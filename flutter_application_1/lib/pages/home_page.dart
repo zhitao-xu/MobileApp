@@ -40,9 +40,6 @@ class HomePageState extends State<HomePage> {
       searchController.clear();
     });
     FocusScope.of(context).unfocus();
-    if(kDebugMode){
-      print("Search state stopped");
-    }
   }
 
   // Search function that filters todos by title and subtitle (including subtasks)
@@ -82,9 +79,12 @@ class HomePageState extends State<HomePage> {
       backgroundColor: lightBlue,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(100),
-        child: CustomAppBar(
-          title: "To-do List\n",
-          isHome: true,
+        child: GestureDetector(
+          
+          child: CustomAppBar(
+            title: "To-do List\n",
+            isHome: true,
+          ),
         ),
       ),
       floatingActionButton: SizedBox(
@@ -262,6 +262,16 @@ class HomePageState extends State<HomePage> {
                             state.todos.where((todo) => todo.isDone).toList(),
                           );
                   
+                          if (sortedPendingTodos.isEmpty && sortedCompletedTodos.isEmpty) {
+                            return Center(
+                              child: Text(
+                                'No tasks yet.\n Tap the "+" button to add a task!',
+                                style: taskInfoStyle,
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }
+
                           return ListView(
                             // Added padding to the bottom to move the last task out of the way of the add task floating action button
                             padding: const EdgeInsets.only(bottom: 85.0), // Adjust this value as needed

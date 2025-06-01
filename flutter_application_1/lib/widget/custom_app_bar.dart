@@ -7,8 +7,8 @@ import 'package:intl/intl.dart';
 
 class CustomAppBar extends StatelessWidget {
   const CustomAppBar({
-    super.key, 
-    required this.title,  
+    super.key,
+    required this.title,
     required this.isHome,
   });
 
@@ -27,6 +27,7 @@ class CustomAppBar extends StatelessWidget {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Setting Icon
               CircleAvatar(
@@ -36,19 +37,25 @@ class CustomAppBar extends StatelessWidget {
                     if (kDebugMode) {
                       print('Setting Icon Tapped');
                     }
-
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const SettingsPage()),
                     );
                   },
-                  child: Icon(
+                  child: const Icon(
                     CupertinoIcons.settings,
                     size: 30,
                   ),
                 ),
               ),
-              titleContent(title, isHome),
+              
+              Expanded(
+                child: Container(
+                  height: 60,
+                  alignment: Alignment.center,
+                  child: titleContent(title, isHome),
+                ),
+              ),
               // Search Icon
               GestureDetector(
                 child: Icon(
@@ -57,8 +64,7 @@ class CustomAppBar extends StatelessWidget {
                   color: white,
                 ),
                 onTap: () {
-                  // filter pop up menu
-                  
+                  // TODO: Implement filter pop-up menu functionality here
                 },
               )
             ],
@@ -72,21 +78,31 @@ class CustomAppBar extends StatelessWidget {
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        children: isHome ? [
-          TextSpan(
-            text: title,
-            style: homeTitleStyle,
-          ),
-          TextSpan(
-            text:  DateFormat.yMMMMd().format(DateTime.now()),
-            style: homeSubTitleStyle,
-          ),
-        ] : [
-          TextSpan(
-            text: title,
-            style: homeTitleStyle,
-          ),
-        ],
+        children: isHome
+            ? [
+                TextSpan(
+                  text: '$title\n',
+                  style: homeTitleStyle,
+                ),
+                TextSpan(
+                  text: DateFormat.yMMMMd().format(DateTime.now()),
+                  style: homeSubTitleStyle,
+                ),
+              ]
+            : [
+                TextSpan(
+                  text: title,
+                  style: homeTitleStyle,
+                ),
+                // Add invisible second line to maintain consistent height
+                TextSpan(
+                  text: '\n',
+                  style: homeSubTitleStyle.copyWith(
+                    color: Colors.transparent,
+                    height: 0.1,
+                  ),
+                ),
+              ],
       ),
     );
   }

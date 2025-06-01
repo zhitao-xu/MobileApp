@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
         title: 'To-do list',
         theme: Themes.light,
         themeMode: ThemeMode.light,
-        home: const MainWrapper(),
+        home: const MainWrapper(pageIndex: 0,),
       ),
     );
   }

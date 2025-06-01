@@ -71,6 +71,13 @@ TextStyle get taskInfoStyle{
   );
 }
 
+TextStyle get textHintStyle{
+  return TextStyle(
+    color: grey,
+    fontStyle: FontStyle.italic,
+  );
+}
+
 
 /// Returns a color based on the Todo's priority string.
 Color getPriorityColor(String priorityString) {

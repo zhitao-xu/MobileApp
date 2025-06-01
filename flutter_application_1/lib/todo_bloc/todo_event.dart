@@ -87,3 +87,5 @@ class UpdateTodo extends TodoEvent {
   @override
   List<Object?> get props => [index, updatedTodo];
 }
+
+class ClearAllTodos extends TodoEvent{}

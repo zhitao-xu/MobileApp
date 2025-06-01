@@ -22,6 +22,7 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
     on<UpdateSubTask>(_onUpdateSubTask);
     on<RemoveSubTask>(_onRemoveSubTask);
     on<UpdateTodo>(_onUpdateTodo);
+    on<ClearAllTodos>(_onClearAllTodos);
   }
 
   void _onStarted(
@@ -345,6 +346,32 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
           state.copyWith(
               status: TodoStatus.error
           )
+      );
+    }
+  }
+
+  void _onClearAllTodos(
+    ClearAllTodos event,
+    Emitter<TodoState> emit,
+  ){
+    emit(
+      state.copyWith(
+        status: TodoStatus.loading
+      )
+    );
+
+    try{
+      emit(
+        const TodoState(
+          todos: <Todo>[], 
+          status: TodoStatus.success,
+        )
+      );
+    }catch(e){
+      emit(
+        state.copyWith(
+          status: TodoStatus.error,
+        )
       );
     }
   }

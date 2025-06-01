@@ -6,6 +6,7 @@ import 'package:flutter_application_1/data/tag.dart';
 import 'package:flutter_application_1/pages/home_page.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_application_1/utils/todo_utils.dart';
+import 'package:flutter_application_1/widget/main_wrapper.dart';
 import 'package:flutter_application_1/widget/navigator_app_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../todo_bloc/todo_bloc.dart';
@@ -289,7 +290,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       if (!hasContent) {
         if(!widget.isSubTask){
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const HomePage()), 
+            MaterialPageRoute(builder: (context) => const MainWrapper(pageIndex: 0,)),
             (Route<dynamic> route) => false,
           );
         }else{
@@ -340,7 +341,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         } else {
           if(!widget.isSubTask){
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const HomePage()), 
+              MaterialPageRoute(builder: (context) => const MainWrapper(pageIndex: 0,)),
               (Route<dynamic> route) => false,
             );
           }else{
@@ -412,7 +413,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         if(!mounted) return;
         if(!widget.isSubTask){
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const HomePage()), 
+            MaterialPageRoute(builder: (context) => const MainWrapper(pageIndex: 0,)),
             (Route<dynamic> route) => false,
           );
         }else{
@@ -820,7 +821,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       );
     } else if(!widget.isSubTask){
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const HomePage()), 
+        MaterialPageRoute(builder: (context) => const MainWrapper(pageIndex: 0,)),
         (Route<dynamic> route) => false,
       );
     }else{

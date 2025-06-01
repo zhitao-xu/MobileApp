@@ -81,7 +81,7 @@ class CustomAppBar extends StatelessWidget {
         children: isHome
             ? [
                 TextSpan(
-                  text: '$title\n',
+                  text: title,
                   style: homeTitleStyle,
                 ),
                 TextSpan(

@@ -9,7 +9,8 @@ import 'package:flutter_application_1/data/todo.dart';
 import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
 
 class MainWrapper extends StatefulWidget {
-  const MainWrapper({super.key});
+  final int pageIndex;
+  const MainWrapper({super.key, required this.pageIndex});
 
   @override
   State<MainWrapper> createState() => _MainWrapperState();
@@ -28,6 +29,12 @@ class _MainWrapperState extends State<MainWrapper> {
     //CalendarPage(), - This will be dynamically created below
     AnalyticsPage(),
   ];*/
+
+  @override
+  void initState(){
+    super.initState();
+    _currentIndex = widget.pageIndex;
+  }
 
  
   @override

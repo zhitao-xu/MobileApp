@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/data/tag.dart';
+import 'package:flutter_application_1/pages/home_page.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_application_1/utils/todo_utils.dart';
 import 'package:flutter_application_1/widget/navigator_app_bar.dart';
@@ -19,6 +20,7 @@ class TaskDetailsPage extends StatefulWidget {
   final int? subTaskIndex;
   final bool isSubTask;
   final bool showParentAfterBack;
+  final int? initialPage;
 
   const TaskDetailsPage({
     super.key, 
@@ -26,6 +28,7 @@ class TaskDetailsPage extends StatefulWidget {
     this.subTaskIndex, 
     this.isSubTask = false,
     this.showParentAfterBack = false,
+    this.initialPage,
   });
 
   @override
@@ -35,7 +38,7 @@ class TaskDetailsPage extends StatefulWidget {
 class _TaskDetailsPageState extends State<TaskDetailsPage> {
   // Todo Task or Subtask
   late dynamic _currentItem;
-  final int _initialPage = 1000;
+  final int _baseInitialPage = 1000;
 
   // PageController for the page view
   late PageController _pageController;
@@ -67,13 +70,32 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   final GlobalKey _reminderKey = GlobalKey();
   final GlobalKey _repeatKey = GlobalKey();
   List<String> selectedTags = [];
+
+  bool _wasAutoSaved = false;
+  int? _currentTaskIndex;
+  String? _autoSavedTaskId;
+  bool _isAutoSaving = false;
   
 
   @override
   void initState() {
     super.initState();
 
-    _pageController = PageController(initialPage: _initialPage);
+    int calculatedInitialPage = _baseInitialPage;
+    if(widget.initialPage != null){
+      calculatedInitialPage = _baseInitialPage + widget.initialPage!;
+    }
+    _pageController = PageController(initialPage: calculatedInitialPage);
+    _pageController.addListener(_onPageControllerChange);
+    _currentTaskIndex = widget.taskIndex;
+    _wasAutoSaved = false;
+    _isAutoSaving = false;
+    _autoSavedTaskId = null;
+
+    if(widget.initialPage != null){
+      _currentPage = widget.initialPage!;
+    }
+    
 
     if (widget.isSubTask) {
       if (widget.taskIndex != null && widget.subTaskIndex != null) {
@@ -86,15 +108,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
           subtitle: '',
           isDone: false,
           priority: 'None',
-          // deadline now expects DateTime?, so pass null for a new, unset deadline
           deadline: null,
-          // remindAt now expects DateTime?, so pass null for a new, unset reminder time
-          // If tasksReminder[0] was meant to trigger some immediate reminder,
-          // you'd need logic here to set a DateTime for 'remindAt', e.g., DateTime.now().add(Duration(minutes: 5))
-          // For a fresh task, it's often null.
-          remindAt: null, // Changed 'remind' to 'remindAt' and set to null
+          remindAt: null,
           remind: tasksReminder[0],
-          repeat: tasksRepeat[0], // Assuming tasksRepeat[0] is still a String
+          repeat: tasksRepeat[0],
         );
       }
     } else {
@@ -107,12 +124,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
           subtitle: '',
           isDone: false,
           priority: 'None',
-          // deadline now expects DateTime?, so pass null for a new, unset deadline
           deadline: null,
-          // remindAt now expects DateTime?, so pass null for a new, unset reminder time
-          remindAt: null, // Changed 'remind' to 'remindAt' and set to null
+          remindAt: null,
           remind: tasksReminder[0],
-          repeat: tasksRepeat[0], // Assuming tasksRepeat[0] is still a String
+          repeat: tasksRepeat[0],
           tags: [],
         );
       }
@@ -152,6 +167,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   @override
   void dispose() {
     _pageController.dispose();
+    _pageController.removeListener(_onPageControllerChange);
 
     _titleController.dispose();
     _subtitleController.dispose();
@@ -172,6 +188,19 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     setState(() {
       _currentPage = index % _contentType.length;
     });
+
+    if(_currentPage == 1 && widget.taskIndex == null && !widget.isSubTask && !_wasAutoSaved){
+      _autoSaveDraft();
+    }
+  }
+
+  void _onPageControllerChange(){
+    if(_pageController.hasClients){
+      final currentPageIndex = ((_pageController.page ?? _baseInitialPage) - _baseInitialPage).round();
+      if(currentPageIndex != _currentPage){
+        _onPageChanged(currentPageIndex);
+      }
+    }
   }
 
   // Method to handle date picking
@@ -258,7 +287,14 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         _repeatController.text != tasksRepeat[0];
 
       if (!hasContent) {
-        Navigator.of(context).pop();
+        if(!widget.isSubTask){
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const HomePage()), 
+            (Route<dynamic> route) => false,
+          );
+        }else{
+          Navigator.of(context).pop();
+        }
         return;
       }
     } else {
@@ -280,6 +316,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                 taskIndex: widget.taskIndex,
                 isSubTask: false,
                 showParentAfterBack: false,
+                initialPage: 1,
               ),
               transitionsBuilder: (context, animation, secondaryAnimation, child) {
                 // This will naturally feel like a back navigation
@@ -301,7 +338,14 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
             ),
           );
         } else {
+          if(!widget.isSubTask){
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const HomePage()), 
+              (Route<dynamic> route) => false,
+            );
+          }else{
           Navigator.pop(context);
+          }
         }
         return;
       }
@@ -343,6 +387,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
               taskIndex: widget.taskIndex,
               isSubTask: false,
               showParentAfterBack: false,
+              initialPage: 1,
             ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               // This will naturally feel like a back navigation
@@ -365,7 +410,14 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         );
       } else {
         if(!mounted) return;
-        Navigator.pop(context);
+        if(!widget.isSubTask){
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const HomePage()), 
+            (Route<dynamic> route) => false,
+          );
+        }else{
+          Navigator.pop(context);
+        }
       }
     }
   }
@@ -416,7 +468,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                     context,
                     MaterialPageRoute(
                       builder: (_) =>  TaskDetailsPage(
-                        taskIndex: widget.taskIndex,
+                        taskIndex: _currentTaskIndex,
                         isSubTask: true,
                       ),
                     ),
@@ -520,8 +572,114 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     );
   }
 
+    void _autoSaveDraft() async {
+    // Prevent multiple simultaneous auto-saves
+    if (_isAutoSaving) return;
+
+    if(widget.taskIndex != null || _wasAutoSaved) return;
+    
+    // Only auto-save if there's at least a title
+    if (_titleController.text.trim().isNotEmpty) {
+      setState(() {
+        _isAutoSaving = true;
+      });
+
+      // Show a brief loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(width: 12),
+              Text('Saving draft...'),
+            ],
+          ),
+          duration: Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      final draftTodo = Todo(
+        title: _titleController.text.trim(),
+        subtitle: _subtitleController.text,
+        isDone: false,
+        priority: _priorityController.text,
+        deadline: parseDateTimeFromStrings(
+          _deadlineDateController.text,
+          _deadlineTimeController.text,
+        ),
+        remindAt: null,
+        remind: _remindController.text,
+        repeat: _repeatController.text,
+        tags: [],
+      );
+
+      _autoSavedTaskId = draftTodo.id;
+
+      // Add the task
+      context.read<TodoBloc>().add(AddTodo(draftTodo));
+      
+      // Wait for the bloc to process the addition
+      await Future.delayed(const Duration(milliseconds: 200));
+      
+      if(!mounted) return;
+      // Get the new task index
+      final updatedState = context.read<TodoBloc>().state;
+      if (updatedState.status == TodoStatus.success) {
+        final newTaskIndex = updatedState.todos.indexWhere((todo) => todo.id == _autoSavedTaskId);
+        
+        if(newTaskIndex != -1){
+          // Update our local state
+          setState(() {
+            _currentTaskIndex = newTaskIndex;
+            _wasAutoSaved = true;
+            _isAutoSaving = false;
+          });
+        }
+        
+        // Update the current item reference
+        _currentItem = updatedState.todos[newTaskIndex];
+        
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Draft saved! You can now add subtasks.'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        setState(() {
+          _isAutoSaving = false;
+        });
+      }
+    } else {
+      // Show a gentle prompt to add a title first
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add a task title first'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      // Switch back to details page
+      _pageController.animateToPage(
+        _baseInitialPage, // Go back to Info page
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      // // Focus on title field after animation
+      // Future.delayed(const Duration(milliseconds: 400), () {
+      //   FocusScope.of(context).requestFocus(_titleFocusNode);
+      // });
+    }
+  }
   // Method to save the task
-  void _saveTask() async{
+  void _saveTask() async {
     if (_titleController.text.trim().isEmpty) {
       showDialog(
         context: context,
@@ -557,10 +715,8 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         title: _titleController.text,
         subtitle: _subtitleController.text,
         priority: _priorityController.text,
-        // Pass the parsed DateTime?
         deadline: parsedDeadline,
-        // Pass the parsed DateTime?
-        remindAt: parsedDeadline!=null
+        remindAt: parsedDeadline != null
           ? convertReminderStringToDateTime(_remindController.text, parsedDeadline)
           : null,
         remind: _remindController.text,
@@ -576,51 +732,75 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         ));
       } else {
         // Add new subtask
-        context.read<TodoBloc>().add(AddSubTask(widget.taskIndex!, updatedSubTask));
+        final parentTaskIndex = widget.taskIndex ?? _currentTaskIndex;
+        if(parentTaskIndex != null){
+          context.read<TodoBloc>().add(AddSubTask(parentTaskIndex, updatedSubTask));
+        }else{
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Error"),
+                content: const Text("Cannot save subtask: parent task not found."),
+                actions: [
+                  TextButton(
+                    child: const Text("OK"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+          return;
+        }
       }
     } else {
-      // Todo task saving logic - need to get the latest task data before saving
+      // Todo task saving logic
       final currentState = context.read<TodoBloc>().state;
       Todo currentTaskData;
 
-      if(widget.taskIndex != null && currentState.status == TodoStatus.success){
-        currentTaskData = currentState.todos[widget.taskIndex!]; // existing task
-      }else{
-        currentTaskData = _currentItem as Todo; // new task
+      final taskIndex = _currentTaskIndex ?? widget.taskIndex;
+
+      if (taskIndex != null && currentState.status == TodoStatus.success) {
+        currentTaskData = currentState.todos[taskIndex]; // existing or auto-saved task
+      } else {
+        currentTaskData = _currentItem as Todo; // completely new task
       }
-      
 
       final updatedTodo = currentTaskData.copyWith(
         title: _titleController.text,
         subtitle: _subtitleController.text,
         priority: _priorityController.text,
         deadline: parsedDeadline,
-        remindAt: parsedDeadline!=null
+        remindAt: parsedDeadline != null
           ? convertReminderStringToDateTime(_remindController.text, parsedDeadline)
           : null,
         remind: _remindController.text,
         repeat: _repeatController.text,
-        // subtasks are preservveed from currentTaskData
       );
 
-      if (widget.taskIndex != null) {
-        context.read<TodoBloc>().add(UpdateTodo(widget.taskIndex!, updatedTodo));
+      if (taskIndex != null) {
+        // Update existing task (including auto-saved drafts)
+        context.read<TodoBloc>().add(UpdateTodo(taskIndex, updatedTodo));
       } else {
+        // Add completely new task
         context.read<TodoBloc>().add(AddTodo(updatedTodo));
       }
     }
     
-    // Navigate back TODO
-    if(widget.isSubTask && widget.showParentAfterBack){
+    // Navigate back
+    if (widget.isSubTask && widget.showParentAfterBack) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(
-            taskIndex: widget.taskIndex,
+            taskIndex: widget.taskIndex ?? _currentTaskIndex, // Use correct task index
             isSubTask: false,
             showParentAfterBack: false,
+            initialPage: 1,
           ),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            // This will naturally feel like a back navigation
             const begin = Offset(-1.0, 0.0);
             const end = Offset.zero;
             const curve = Curves.easeInOut;
@@ -1031,41 +1211,117 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     );
   }
 
-  Widget _buildSubtasksContent(){
+  Widget _buildSubtasksContent() {
+    if (widget.taskIndex == null && !_wasAutoSaved) {
+      return Container(
+        color: backgoundGrey,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.assignment_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Add a title to get started',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Your task will be automatically saved as a draft',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Determine which task index to use for subtasks
+    final taskIndexToUse = widget.taskIndex ?? _currentTaskIndex;
+
     return Container(
       color: backgoundGrey,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-        child: ListView.builder(
-          itemCount: widget.isSubTask ? 0 : context.read<TodoBloc>().state.todos[widget.taskIndex!].subtasks.length,
-          padding: const EdgeInsets.only(bottom: 120.0),
-          itemBuilder: (context, index) {
-            final subtask = context.read<TodoBloc>().state.todos[widget.taskIndex!].subtasks[index];
-            return TodoCard.forSubTask(
-              subTask: subtask,
-              originalIndex: index,
-              onDelete: () {
-                if(widget.taskIndex != null) {
-                  context.read<TodoBloc>().add(RemoveSubTask(widget.taskIndex!, index));
-                }
-              },
-              onToggleCompletion: () => context.read<TodoBloc>().add(
-                CompleteSubTask(widget.taskIndex!,index,),
-              ),
-              onTap: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TaskDetailsPage(
-                      taskIndex: widget.taskIndex,
-                      subTaskIndex: index,
-                      isSubTask: true,
+        child: Column(
+          children: [
+            // Show auto-save indicator
+            if (_wasAutoSaved)
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: blue.withAlpha(25),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: blue.withAlpha(75)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.info_outline, size: 16, color: Colors.blue[700]),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Draft saved automatically',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                );
-              }
-            );
-          }
+                  ],
+                ),
+              ),
+              
+            Expanded(
+              child: ListView.builder(
+                itemCount: widget.isSubTask 
+                  ? 0 
+                  : (taskIndexToUse != null 
+                      ? context.read<TodoBloc>().state.todos[taskIndexToUse].subtasks.length 
+                      : 0),
+                padding: const EdgeInsets.only(bottom: 120.0),
+                itemBuilder: (context, index) {
+                  final subtask = context.read<TodoBloc>().state.todos[taskIndexToUse!].subtasks[index];
+                  return TodoCard.forSubTask(
+                    subTask: subtask,
+                    originalIndex: index,
+                    onDelete: () {
+                      context.read<TodoBloc>().add(RemoveSubTask(taskIndexToUse, index));
+                    },
+                    onToggleCompletion: () => context.read<TodoBloc>().add(
+                      CompleteSubTask(taskIndexToUse, index),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TaskDetailsPage(
+                            taskIndex: taskIndexToUse,
+                            subTaskIndex: index,
+                            isSubTask: true,
+                            showParentAfterBack: true,
+                          ),
+                        ),
+                      );
+                    }
+                  );
+                }
+              ),
+            ),
+          ],
         )
       )
     );    

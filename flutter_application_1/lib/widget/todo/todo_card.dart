@@ -208,7 +208,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
           builder: (context) => TaskDetailsPage(
             taskIndex: widget.originalIndex,
             isSubTask: true,
-            subTaskIndex: 0, // TODO
+            subTaskIndex: 0,
           ),
         ),
       );

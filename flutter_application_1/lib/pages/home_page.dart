@@ -267,12 +267,26 @@ class HomePageState extends State<HomePage> {
                             padding: const EdgeInsets.only(bottom: 85.0), // Adjust this value as needed
                             children: [
                               if (sortedPendingTodos.isNotEmpty) ...[
-                                const Padding(
+                                Padding(
                                   padding: EdgeInsets.symmetric(vertical: 8.0),
-                                  child: Text(
-                                    'Pending Tasks',
-                                    style:
-                                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        'Pending Tasks',
+                                        style:
+                                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                      ),
+                                      Spacer(),
+                                      GestureDetector(
+                                        onTap:(){
+                                          context.read<TodoBloc>().add(ClearAllTodos());
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                                          child: Icon(CupertinoIcons.delete_simple),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 // Directly use TodoCard here

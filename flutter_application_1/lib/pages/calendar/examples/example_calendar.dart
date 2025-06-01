@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/pages/calendar/events_example.dart';
+import 'package:flutter_application_1/pages/calendar/examples/events_example.dart';
 import 'package:flutter_application_1/pages/calendar/examples/table_basics_example.dart';
 import 'package:flutter_application_1/pages/calendar/examples/table_complex_example.dart';
 import 'package:flutter_application_1/pages/calendar/examples/multi_example.dart';

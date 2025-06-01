@@ -5,8 +5,10 @@ import 'package:flutter_application_1/utils/theme.dart'; // For your custom colo
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
-// --- REMOVE TaskItem abstract class ---
-// --- REMOVE TodoAsTaskItem and SubTaskAsTaskItem extensions ---
+//TODO:For tasks with subtasks: The main task's checkbox should ideally be disabled or unclickable (or perhaps greyed out) until all its subtasks are marked as complete.
+//The isDone status of the main task should be automatically derived from the isDone status of its subtasks. 
+//When all subtasks are isDone = true, then the parent Todo's isDone automatically becomes true. 
+//If even one subtask is marked isDone = false, the parent Todo's isDone should automatically become false.
 
 class TodoCard<T> extends StatelessWidget {
   final T item; // Can be Todo or SubTask

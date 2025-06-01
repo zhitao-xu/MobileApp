@@ -188,13 +188,16 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                       return const SizedBox.shrink();
                     }
 
-                    return TodoCard.forTodo(
-                      key: ValueKey(task.id), // Use unique ID as key for stability
-                      todo: task,
-                      originalIndex: originalIndex, // Pass the index the Bloc expects
-                      onDelete: () => _removeTodo(task), // Call the Bloc's RemoveTodo
-                      onToggleCompletion: () => _toggleTodoStatus(originalIndex), // Call the Bloc's AlterTodo
-                      showDate: false,
+                    return Padding( // <--- Wrap with Padding widget
+                      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0), // Example padding
+                      child: TodoCard.forTodo(
+                        key: ValueKey(task.id), // Use unique ID as key for stability
+                        todo: task,
+                        originalIndex: originalIndex, // Pass the index the Bloc expects
+                        onDelete: () => _removeTodo(task), // Call the Bloc's RemoveTodo
+                        onToggleCompletion: () => _toggleTodoStatus(originalIndex), // Call the Bloc's AlterTodo
+                        showDate: false,
+                      ),
                     );
                     
                   },

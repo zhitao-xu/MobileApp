@@ -7,6 +7,7 @@ import 'package:flutter_application_1/bloc/bottom_nav.dart';
 import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_application_1/pages/analytics/stats/user_stats_cubit.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 Future<void> main() async {
@@ -34,8 +35,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => BottomNav()),
-        BlocProvider(create: (context) => TodoBloc()..add(TodoStarted())),
+        // Provide UserStatsCubit first, as TodoBloc will depend on it
+        BlocProvider<UserStatsCubit>(
+          create: (context) => UserStatsCubit(),
+        ),
+        // Provide TodoBloc, injecting the UserStatsCubit
+        BlocProvider<TodoBloc>(
+          create: (context) => TodoBloc(
+            userStatsCubit: BlocProvider.of<UserStatsCubit>(context), // Pass the UserStatsCubit
+          ),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

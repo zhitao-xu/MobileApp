@@ -2,12 +2,17 @@ import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:meta/meta.dart';
 import '../data/todo.dart';
+import 'package:flutter_application_1/pages/analytics/stats/user_stats_cubit.dart';
 
 part 'todo_event.dart';
 part 'todo_state.dart';
 
 class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
-  TodoBloc() : super(const TodoState()) {
+  final UserStatsCubit _userStatsCubit; // Declare a final field for UserStatsCubit
+
+  TodoBloc({required UserStatsCubit userStatsCubit}) // Add it to the constructor
+      : _userStatsCubit = userStatsCubit, // Initialize it
+        super(const TodoState()) {
     on<TodoStarted>(_onStarted);
     on<AddTodo>(_onAddTodo);
     on<RemoveTodo>(_onRemoveTodo);
@@ -86,61 +91,83 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
     }
   }
 
-  void _onAlterTodo(
-      AlterTodo event,
-      Emitter<TodoState> emit,
-      ) {
-    emit(
-        state.copyWith(
-            status: TodoStatus.loading
-        )
-    );
+  void _onAlterTodo(AlterTodo event, Emitter<TodoState> emit) {
+    emit(state.copyWith(status: TodoStatus.loading));
     try {
-      state.todos[event.index].isDone = !state.todos[event.index].isDone;
-      emit(
-          state.copyWith(
-              todos: state.todos,
-              status: TodoStatus.success
-          )
+      final updatedTodos = List<Todo>.from(state.todos);
+      final int index = event.index;
+
+      if (index < 0 || index >= updatedTodos.length) {
+        emit(state.copyWith(status: TodoStatus.error));
+        return;
+      }
+
+      final Todo oldTodo = updatedTodos[index];
+      final bool willBeDone = !oldTodo.isDone; // The new `isDone` status
+
+      // Update analytics based on the transition
+      if (!oldTodo.isDone && willBeDone) { // Task is becoming done
+        _userStatsCubit.incrementTotalTasksCompleted();
+      } else if (oldTodo.isDone && !willBeDone) { // Task is becoming undone
+        _userStatsCubit.decrementTotalTasksCompleted();
+      }
+
+      // NEW: Update actualCompletionDate timestamp
+      final DateTime? newActualCompletionDate = willBeDone ? DateTime.now() : null;
+
+      // Update the Todo's actual `isDone` status and actualCompletionDate
+      updatedTodos[index] = oldTodo.copyWith(
+        isDone: willBeDone,
+        actualCompletionDate: newActualCompletionDate, // Assign the timestamp
       );
+
+      emit(state.copyWith(todos: updatedTodos, status: TodoStatus.success));
+
+      // Call for on-time streak calculation after todos are updated
+      _userStatsCubit.calculateOnTimePercentage(updatedTodos); // Pass the updated list
+
     } catch (e) {
-      emit(
-          state.copyWith(
-              status: TodoStatus.error
-          )
-      );
+      emit(state.copyWith(status: TodoStatus.error));
     }
   }
 
-  void _onAddSubTask(
-      AddSubTask event,
-      Emitter<TodoState> emit,
-      ) {
-    emit(
-        state.copyWith(
-            status: TodoStatus.loading
-        )
-    );
+  
+  void _onAddSubTask(AddSubTask event, Emitter<TodoState> emit) {
+    emit(state.copyWith(status: TodoStatus.loading));
     try {
       final updatedTodos = List<Todo>.from(state.todos);
-      final updatedTodo = updatedTodos[event.todoIndex].copyWith(
-        subtasks: List<SubTask>.from(updatedTodos[event.todoIndex].subtasks)
-          ..add(event.subTask),
-      );
-      updatedTodos[event.todoIndex] = updatedTodo;
+      if (event.todoIndex < 0 || event.todoIndex >= updatedTodos.length) {
+        emit(state.copyWith(status: TodoStatus.error));
+        return;
+      }
 
-      emit(
-          state.copyWith(
-              todos: updatedTodos,
-              status: TodoStatus.success
-          )
+      final Todo oldParentTodo = updatedTodos[event.todoIndex];
+      final List<SubTask> currentSubtasks = List<SubTask>.from(oldParentTodo.subtasks);
+
+      // Add the new subtask
+      currentSubtasks.add(event.subTask);
+
+      // Re-evaluate the parent task's `isDone` status
+      // A parent is done only if all its (possibly new) subtasks are done.
+      // If a new subtask is added, it's typically incomplete, so parent will become incomplete.
+      final bool newParentTodoIsDone = currentSubtasks.every((subTask) => subTask.isDone);
+
+      // Update analytics based on the parent todo's transition
+      if (oldParentTodo.isDone && !newParentTodoIsDone) { // Parent was done, now it's not
+        _userStatsCubit.decrementTotalTasksCompleted();
+      }
+      // No increment logic here, as adding a subtask never completes a parent task.
+
+      // Create the updated parent todo
+      final updatedParentTodo = oldParentTodo.copyWith(
+        subtasks: currentSubtasks,
+        isDone: newParentTodoIsDone, // Update the `isDone` status
       );
+      updatedTodos[event.todoIndex] = updatedParentTodo;
+
+      emit(state.copyWith(todos: updatedTodos, status: TodoStatus.success));
     } catch (e) {
-      emit(
-          state.copyWith(
-              status: TodoStatus.error
-          )
-      );
+      emit(state.copyWith(status: TodoStatus.error));
     }
   }
 
@@ -155,56 +182,75 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
     );
     try {
       final updatedTodos = List<Todo>.from(state.todos);
-      final updatedSubTasks = List<SubTask>.from(updatedTodos[event.todoIndex].subtasks);
-
-      // Verifica che i subtask precedenti siano completati
-      if (event.subTaskIndex > 0 && !updatedSubTasks[event.subTaskIndex - 1].isDone) {
-        emit(state.copyWith(status: TodoStatus.success));
-        return; // Subtask dependency not satisfied
+      if (event.todoIndex < 0 || event.todoIndex >= updatedTodos.length) {
+        emit(state.copyWith(status: TodoStatus.error));
+        return;
       }
 
-      // Aggiorna lo stato del subtask
-      updatedSubTasks[event.subTaskIndex] =
-          updatedSubTasks[event.subTaskIndex].copyWith(isDone: !updatedSubTasks[event.subTaskIndex].isDone);
+      final Todo oldParentTodo = updatedTodos[event.todoIndex];  
+      final List<SubTask> updatedSubTasks = List<SubTask>.from(oldParentTodo.subtasks);
 
-      // Verifica se tutti i subtask sono completati
-      final allSubTasksCompleted = updatedSubTasks.every((subTask) => subTask.isDone);
+      if (event.subTaskIndex < 0 || event.subTaskIndex >= updatedSubTasks.length) {
+        emit(state.copyWith(status: TodoStatus.error));
+        return;
+      }
 
-      final updatedTodo = updatedTodos[event.todoIndex].copyWith(
+      // Toggle subtask's isDone and set its actualCompletionDate
+      updatedSubTasks[event.subTaskIndex] = updatedSubTasks[event.subTaskIndex]
+          .copyWith(
+            isDone: !updatedSubTasks[event.subTaskIndex].isDone,
+            actualCompletionDate: !updatedSubTasks[event.subTaskIndex].isDone ? DateTime.now() : null,
+          );
+
+      final bool allSubTasksCompleted = updatedSubTasks.every((subTask) => subTask.isDone);
+      final bool newParentTodoIsDone = allSubTasksCompleted; // Derive parent's isDone
+
+      // Analytics Logic:
+      // If the parent task just became completed due to subtask completion
+      if (!oldParentTodo.isDone && newParentTodoIsDone) {
+        _userStatsCubit.incrementTotalTasksCompleted();
+      }
+      // If the parent task just became incomplete (un-completed) due to a subtask being un-completed
+      else if (oldParentTodo.isDone && !newParentTodoIsDone) {
+        _userStatsCubit.decrementTotalTasksCompleted();
+      }
+
+      final DateTime? newParentActualCompletionDate = newParentTodoIsDone ? DateTime.now() : null;
+
+      // Update the Todo's actual `isDone` status and actualCompletionDate
+      final Todo newParentTodo = oldParentTodo.copyWith(
         subtasks: updatedSubTasks,
-        isDone: allSubTasksCompleted, // Imposta isDone del todo in base allo stato di tutti i subtask
+        isDone: newParentTodoIsDone,
+        actualCompletionDate: newParentActualCompletionDate, // Assign the timestamp
       );
-      updatedTodos[event.todoIndex] = updatedTodo;
+      updatedTodos[event.todoIndex] = newParentTodo;
 
-      emit(
-          state.copyWith(
-              todos: updatedTodos,
-              status: TodoStatus.success
-          )
-      );
+      emit(state.copyWith(todos: updatedTodos, status: TodoStatus.success));
+      // Call for on-time streak calculation after todos are updated
+      _userStatsCubit.calculateOnTimePercentage(updatedTodos); // Pass the updated list
     } catch (e) {
-      emit(
-          state.copyWith(
-              status: TodoStatus.error
-          )
-      );
+      emit(state.copyWith(status: TodoStatus.error));
     }
   }
 
   // Nuovo metodo per aggiornare i dettagli di un subtask (priorità, scadenza, ecc.)
-  void _onUpdateSubTask(
-      UpdateSubTask event,
-      Emitter<TodoState> emit,
-      ) {
-    emit(
-        state.copyWith(
-            status: TodoStatus.loading
-        )
-    );
+  //TODO: controllare se in futuro questo metodo può causare la parent task a diventare done o not.
+
+  void _onUpdateSubTask(UpdateSubTask event, Emitter<TodoState> emit,) {
+    emit(state.copyWith(status: TodoStatus.loading));
+
     try {
       final updatedTodos = List<Todo>.from(state.todos);
+      if (event.todoIndex < 0 || event.todoIndex >= updatedTodos.length) {
+        emit(state.copyWith(status: TodoStatus.error));
+        return;
+      }
       final updatedSubTasks = List<SubTask>.from(updatedTodos[event.todoIndex].subtasks);
-
+      if (event.subTaskIndex < 0 || event.subTaskIndex >= updatedSubTasks.length) {
+        emit(state.copyWith(status: TodoStatus.error));
+        return;
+      }
+      
       // Sostituisce il subtask con la versione aggiornata
       updatedSubTasks[event.subTaskIndex] = event.updatedSubTask;
 
@@ -213,55 +259,54 @@ class TodoBloc extends HydratedBloc<TodoEvent, TodoState> {
       );
       updatedTodos[event.todoIndex] = updatedTodo;
 
-      emit(
-          state.copyWith(
-              todos: updatedTodos,
-              status: TodoStatus.success
-          )
-      );
+      emit(state.copyWith(todos: updatedTodos, status: TodoStatus.success));
     } catch (e) {
-      emit(
-          state.copyWith(
-              status: TodoStatus.error
-          )
-      );
+      emit(state.copyWith(status: TodoStatus.error));
     }
   }
 
-  void _onRemoveSubTask(
-      RemoveSubTask event,
-      Emitter<TodoState> emit,
-      ) {
-    emit(
-        state.copyWith(
-            status: TodoStatus.loading
-        )
-    );
+  void _onRemoveSubTask(RemoveSubTask event, Emitter<TodoState> emit) {
+    emit(state.copyWith(status: TodoStatus.loading));
     try {
       final updatedTodos = List<Todo>.from(state.todos);
-      final updatedSubTasks = List<SubTask>.from(updatedTodos[event.todoIndex].subtasks);
+      if (event.todoIndex < 0 || event.todoIndex >= updatedTodos.length) {
+        emit(state.copyWith(status: TodoStatus.error));
+        return;
+      }
+      final Todo oldParentTodo = updatedTodos[event.todoIndex];
+      final List<SubTask> updatedSubTasks = List<SubTask>.from(oldParentTodo.subtasks);
 
-      // Rimuove il subtask all'indice specificato
+      if (event.subTaskIndex < 0 || event.subTaskIndex >= updatedSubTasks.length) {
+        emit(state.copyWith(status: TodoStatus.error));
+        return;
+      }
+
       updatedSubTasks.removeAt(event.subTaskIndex);
 
-      final updatedTodo = updatedTodos[event.todoIndex].copyWith(
-        subtasks: updatedSubTasks,
-        isDone: updatedSubTasks.isNotEmpty && updatedSubTasks.every((s) => s.isDone),
-      );
-      updatedTodos[event.todoIndex] = updatedTodo;
+      final bool allRemainingSubTasksCompleted = updatedSubTasks.isNotEmpty && updatedSubTasks.every((s) => s.isDone);
+      final bool newParentTodoIsDone = allRemainingSubTasksCompleted;
 
-      emit(
-          state.copyWith(
-              todos: updatedTodos,
-              status: TodoStatus.success
-          )
+      // Analytics Logic: if removing a subtask causes the parent todo to become complete
+      if (!oldParentTodo.isDone && newParentTodoIsDone) {
+        _userStatsCubit.incrementTotalTasksCompleted();
+      }
+
+      // Update actualCompletionDate for the parent todo based on its new state
+      final DateTime? newParentActualCompletionDate = newParentTodoIsDone ? DateTime.now() : null;
+
+      final newParentTodo = oldParentTodo.copyWith(
+        subtasks: updatedSubTasks,
+        isDone: newParentTodoIsDone,
+        actualCompletionDate: newParentActualCompletionDate,
       );
+
+      updatedTodos[event.todoIndex] = newParentTodo;
+
+      emit(state.copyWith(todos: updatedTodos, status: TodoStatus.success));
+      _userStatsCubit.calculateOnTimePercentage(updatedTodos); // Call after state update
+      
     } catch (e) {
-      emit(
-          state.copyWith(
-              status: TodoStatus.error
-          )
-      );
+      emit(state.copyWith(status: TodoStatus.error));
     }
   }
 

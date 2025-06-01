@@ -5,15 +5,15 @@ import 'package:uuid/uuid.dart'; // Import uuid
 final _uuid = const Uuid();
 
 class SubTask {
-  final String id; // New: Unique ID
+  final String id;
   final String title;
   final String subtitle;
   bool isDone;
   String priority;
-  DateTime? deadline; // Already DateTime? - perfect!
-  DateTime createdAt; // Already DateTime - perfect!
-  DateTime? actualCompletionDate; // Already DateTime? - perfect!
-  DateTime? remindAt; // Already DateTime? - perfect!
+  DateTime? deadline;
+  DateTime createdAt;
+  DateTime? actualCompletionDate;
+  DateTime? remindAt; 
   String repeat;
 
   SubTask({
@@ -299,5 +299,18 @@ class Todo {
         'repeat: $repeat,\n'
         'tags: $tags,\n'
         'subtasks: $subtasks)\n\n';
+  }
+
+  // Inside your Todo class, above or below your copyWith method
+  bool get wasCompletedOnTime {
+    if (!isDone || actualCompletionDate == null || deadline == null) {
+      return false; // Not done, or no completion/deadline info
+    }
+    // A task is on time if it was completed AT or BEFORE its deadline.
+    // Ensure both are treated as UTC or Local consistently for comparison.
+    // For safety and consistency, it's often best to convert to UTC before comparison
+    // or ensure both are timezone-aware if that's critical for your app.
+    // For now, assuming they are consistently generated (e.g., all local or all UTC).
+    return actualCompletionDate!.isBefore(deadline!) || actualCompletionDate!.isAtSameMomentAs(deadline!);
   }
 }

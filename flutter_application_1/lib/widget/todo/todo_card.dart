@@ -105,7 +105,36 @@ class TodoCard<T> extends StatefulWidget {
 
 class _TodoCardState<T> extends State<TodoCard<T>> {
   bool _showSubtasks = false;
+  bool _isDismissed = false;
 
+  late bool _localIsDone;
+
+  // --- initState() ---
+  @override
+  void initState() {
+    super.initState();
+
+    _localIsDone = _isDone;
+  }
+
+
+  @override
+  void didUpdateWidget(covariant TodoCard<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // This method runs when the card is moved to a new list.
+    // We check if the completion status from the BLoC (_isDone)
+    // is different from our remembered status (_localIsDone).
+    if (_isDone != _localIsDone) {
+      // If they are different, it means the task was completed or undone.
+      // We make the card visible again by resetting _isDismissed
+      // and update our remembered status.
+      setState(() {
+        _isDismissed = false;
+        _localIsDone = _isDone;
+      });
+    }
+  }
   // Helper methods to access properties regardless of type
   String get _id {
     if (widget.item is Todo) {
@@ -269,6 +298,10 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isDismissed) {
+      return const SizedBox.shrink();
+    }
+
     final isCompleted = _isDone;
     final backgroundColor = isCompleted
         ? Colors.grey[300]
@@ -325,6 +358,17 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
               key: ValueKey(_id),
               startActionPane: ActionPane(
                 motion: const ScrollMotion(),
+                dismissible: widget.onDelete != null
+                  ? DismissiblePane(onDismissed: () {
+                      setState(() {
+                        _isDismissed = true;
+                      });
+                      // 1. WRAP THIS LINE IN A FUTURE
+                      Future.delayed(Duration.zero, () {
+                        widget.onDelete?.call();
+                      });
+                    })
+                  : null,
                 children: [
                   CustomSlidableAction(
                     onPressed: widget.onDelete != null ? (_) => widget.onDelete!() : null,
@@ -342,12 +386,21 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
               ),
               endActionPane: ActionPane(
                 motion: const ScrollMotion(),
+                dismissible: widget.onToggleCompletion != null
+                ? DismissiblePane(onDismissed: () {
+                    setState(() {
+                      _isDismissed = true;
+                    });
+                    // 2. WRAP THIS LINE IN A FUTURE
+                    Future.delayed(Duration.zero, () {
+                      widget.onToggleCompletion?.call();
+                    });
+                  })
+                : null,
                 children: [
                   if (!isCompleted)
                     CustomSlidableAction(
-                      onPressed: widget.onToggleCompletion != null
-                        ? (context) => widget.onToggleCompletion!()
-                        : null,
+                      onPressed: (context) => widget.onToggleCompletion?.call(),
                       backgroundColor: green,
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -360,9 +413,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                     ),
                   if (isCompleted)
                     CustomSlidableAction(
-                      onPressed: widget.onToggleCompletion != null
-                        ? (context) => widget.onToggleCompletion!()
-                        : null,
+                      onPressed: (context) => widget.onToggleCompletion?.call(),
                       backgroundColor: orange,
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,

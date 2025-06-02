@@ -5,6 +5,7 @@ import 'package:flutter_application_1/pages/task_details.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class TodoCard<T> extends StatefulWidget {
   final T item; // Can be Todo or SubTask
@@ -106,6 +107,22 @@ class TodoCard<T> extends StatefulWidget {
 class _TodoCardState<T> extends State<TodoCard<T>> {
   bool _showSubtasks = false;
 
+  //audio player creation and disposal
+
+  late AudioPlayer _audioPlayer; 
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer(); 
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose(); 
+    super.dispose();
+  }
+
   // Helper methods to access properties regardless of type
   String get _id {
     if (widget.item is Todo) {
@@ -194,6 +211,13 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
     }
   }
 
+  Future<void> _playSound(String assetPath) async {
+    // We only play the sound if the task is currently NOT done (i.e., it's about to be completed)
+    if (!_isDone) {
+      await _audioPlayer.play(AssetSource(assetPath));
+    }
+  }
+
   void openDetailsPage(BuildContext context) async {
     if (widget.onTap != null) {
       widget.onTap!();
@@ -251,7 +275,13 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
             item: subtask,
             originalIndex: widget.originalIndex,
             onToggleCompletion: widget.onSubTaskToggleCompletion != null
-                ? () => widget.onSubTaskToggleCompletion!(subtask, index)
+                ? () {
+                    // Play sound if subtask is being marked as complete
+                    if (!subtask.isDone) { // Check if it's currently NOT done
+                      _playSound('sounds/completion_sound.mp3'); // Your sound file path
+                    }
+                    widget.onSubTaskToggleCompletion!(subtask, index);
+                  }
                 : null,
             onDelete: widget.onSubTaskDelete != null
                 ? () => widget.onSubTaskDelete!(subtask, index)
@@ -346,7 +376,10 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                   if (!isCompleted)
                     CustomSlidableAction(
                       onPressed: widget.onToggleCompletion != null
-                        ? (context) => widget.onToggleCompletion!()
+                        ? (context) {
+                              _playSound('sounds/completion_sound.mp3'); // <--- NEW: Play sound here
+                              widget.onToggleCompletion!();
+                            }
                         : null,
                       backgroundColor: green,
                       child: const Column(
@@ -390,7 +423,11 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                     child: SizedBox(
                       width: 50.0,
                       child: GestureDetector(
-                        onTap: widget.onToggleCompletion,
+                        onTap: widget.onToggleCompletion != null ? () {
+                          // <--- NEW: Play sound when toggling completion via checkbox
+                          _playSound('sounds/completion_sound.mp3'); // Your sound file path
+                          widget.onToggleCompletion!();
+                        } : null,
                         behavior: HitTestBehavior.translucent,
                         child: Center(
                           child: isCompleted

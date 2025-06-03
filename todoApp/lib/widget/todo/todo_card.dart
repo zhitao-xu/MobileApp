@@ -324,7 +324,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
             clipBehavior: Clip.hardEdge,
             child: Slidable(
               key: ValueKey(_id),
-              startActionPane: ActionPane(
+              endActionPane: ActionPane(
                 motion: const ScrollMotion(),
                 children: [
                   CustomSlidableAction(
@@ -341,7 +341,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                   ),
                 ],
               ),
-              endActionPane: ActionPane(
+              startActionPane: ActionPane(
                 motion: const ScrollMotion(),
                 children: [
                   if (!isCompleted)

@@ -10,10 +10,10 @@ class SubTask {
   final String subtitle;
   bool isDone;
   String priority;
-  DateTime? deadline; // Already DateTime? - perfect!
-  DateTime createdAt; // Already DateTime - perfect!
-  DateTime? actualCompletionDate; // Already DateTime? - perfect!
-  DateTime? remindAt; // Already DateTime? - perfect!
+  DateTime? deadline;
+  DateTime createdAt;
+  DateTime? actualCompletionDate;
+  DateTime? remindAt;
   String remind;
   String repeat;
 
@@ -174,10 +174,10 @@ class Todo {
     this.subtitle = '',
     this.isDone = false,
     this.priority = '',
-    DateTime? createdAt, // Allow passing for fromJson
-    this.deadline, // Nullable DateTime
-    this.actualCompletionDate, // Nullable DateTime
-    this.remindAt, // Nullable DateTime
+    DateTime? createdAt,
+    this.deadline,
+    this.actualCompletionDate,
+    this.remindAt,
     this.repeat = '',
     this.remind = '',
     this.tags = const [],

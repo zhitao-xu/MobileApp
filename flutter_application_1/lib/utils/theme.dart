@@ -17,6 +17,7 @@ const Color blue = Colors.blue;
 const Color purple = Color.fromARGB(200, 175, 78, 192);
 
 const Color backgoundGrey = Color.fromARGB(255, 231, 230, 230);
+const Color dividerColor = Color.fromARGB(255, 200, 200, 200);
 const Color bgGrey = Color.fromRGBO(231, 230, 230, 0.102);
 const Color bgBlue = Color.fromRGBO(56, 90, 242, 0.102);
 

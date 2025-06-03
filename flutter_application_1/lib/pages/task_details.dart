@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/data/tag.dart';
-import 'package:flutter_application_1/pages/home_page.dart';
 import 'package:flutter_application_1/utils/theme.dart';
 import 'package:flutter_application_1/utils/todo_utils.dart';
 import 'package:flutter_application_1/widget/main_wrapper.dart';
@@ -834,50 +833,80 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     required BuildContext context,
     required List<String> options,
     required RenderBox buttonBox,
-
-  }){
+  }) {
     final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    final buttonPosition = buttonBox.localToGlobal(Offset.zero, ancestor: overlay);
-
+    final Offset buttonPosition = buttonBox.localToGlobal(Offset.zero, ancestor: overlay);
     final Size screenSize = overlay.size;
+    
     const double verticalOffset = 5.0;
-
-    final double estimatePopupHeight = (44.0 * options.length) + 16.0;
-
-    final double bottomSpace = screenSize.height - (buttonPosition.dy + buttonBox.size.height);
-    final bool showBelow = bottomSpace >= estimatePopupHeight;
-
-    final RelativeRect position;
-
-    if(showBelow){
-      // show below the button
+    const double itemHeight = 44.0;
+    const double popupPadding = 16.0;
+    
+    final double estimatedPopupHeight = (itemHeight * options.length) + popupPadding;
+    
+    // Calculate available space
+    final double spaceBelow = screenSize.height - (buttonPosition.dy + buttonBox.size.height + verticalOffset);
+    final double spaceAbove = buttonPosition.dy - verticalOffset;
+    
+    // Determine positioning strategy
+    final bool showBelow = spaceBelow >= estimatedPopupHeight;
+    final bool showAbove = !showBelow && spaceAbove >= estimatedPopupHeight;
+    
+    RelativeRect position;
+    
+    if (showBelow) {
+      // Show below the button
       position = RelativeRect.fromRect(
         Rect.fromPoints(
-          buttonPosition + Offset(0, buttonBox.size.height + verticalOffset), 
-          buttonPosition + Offset(buttonBox.size.width + 6.0, buttonBox.size.height + verticalOffset)
+          buttonPosition + Offset(0, buttonBox.size.height + verticalOffset),
+          buttonPosition + Offset(buttonBox.size.width, buttonBox.size.height + verticalOffset),
+        ),
+        Offset.zero & overlay.size,
+      );
+    } else if (showAbove) {
+      // Show above the button - account for full popup height
+      position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          buttonPosition - Offset(0, estimatedPopupHeight + verticalOffset),
+          buttonPosition + Offset(buttonBox.size.width, -verticalOffset),
         ),
         Offset.zero & overlay.size,
       );
     } else {
-      // show above the button
-      position = RelativeRect.fromRect(
-        Rect.fromPoints(
-          buttonPosition - Offset(0, verticalOffset), 
-          buttonPosition + Offset(buttonBox.size.width, 0)
-        ),
-        Offset.zero & overlay.size,
-      );
+      // Neither above nor below has enough space
+      // Choose the side with more space and let Flutter handle scrolling
+      if (spaceBelow > spaceAbove) {
+        // Prefer below but constrain height
+        position = RelativeRect.fromRect(
+          Rect.fromPoints(
+            buttonPosition + Offset(0, buttonBox.size.height + verticalOffset),
+            buttonPosition + Offset(buttonBox.size.width, buttonBox.size.height + verticalOffset),
+          ),
+          Offset.zero & overlay.size,
+        );
+      } else {
+        // Prefer above but constrain height
+        final double maxHeight = spaceAbove - verticalOffset;
+        position = RelativeRect.fromRect(
+          Rect.fromPoints(
+            buttonPosition - Offset(0, maxHeight),
+            buttonPosition + Offset(buttonBox.size.width, -verticalOffset),
+          ),
+          Offset.zero & overlay.size,
+        );
+      }
     }
-
-
+  
     showMenu(
       context: context,
       position: position,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
       ),
+
       elevation: 8.0,
       color: white,
+      constraints: BoxConstraints(minWidth: 0),
       items: _buildPopupMenuItemsWithDividers(
         options: options, 
         selectedValue: _getSelectedValueForOption(options)
@@ -923,7 +952,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         selectedValue: selectedValue,
       ));
 
-      if(i < options.length - 1){
+      if (i == 0 && options.length > 1) {
+        items.add(_buildCustomDivider());
+      } else if (i < options.length - 1 && i != 0) {
         items.add(PopupMenuDivider(height: 0.4));
       }
     }
@@ -931,6 +962,19 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     return items;
   }
   
+  PopupMenuEntry<String> _buildCustomDivider() {
+    return PopupMenuItem<String>(
+      enabled: false,
+      height: 10.0,
+      padding: EdgeInsets.zero,
+      child: Container(
+        height: 10.0,
+        decoration: BoxDecoration(
+          color: dividerColor,
+        ),
+      ),
+    );
+  }
 
   PopupMenuItem<String> _buildPopupMenuItem({
     required String value,
@@ -1186,7 +1230,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                 ),
               ],
 
-              // TEST SECTION
+              // TEST SECTION - TODO: not in final
               buildContainer(
                 context: context,
                 icons:[

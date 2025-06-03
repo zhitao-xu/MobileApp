@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/widget/todo/todo_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -291,7 +290,7 @@ class HomePageState extends State<HomePage> {
                                         onTap:(){
                                           context.read<TodoBloc>().add(ClearAllTodos());
                                         },
-                                        child: Padding(
+                                        child: Padding( // TODO : not in the final
                                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                                           child: Icon(CupertinoIcons.delete_simple),
                                         ),

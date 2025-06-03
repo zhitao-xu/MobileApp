@@ -321,6 +321,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                   ? BorderSide(color: Colors.grey[300]!, width: 0.5)
                   : BorderSide.none,
             ),
+            clipBehavior: Clip.hardEdge,
             child: Slidable(
               key: ValueKey(_id),
               startActionPane: ActionPane(
@@ -375,91 +376,93 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                     ),
                 ],
               ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: widget.isSubTask ? 0.0 : 4.0),
-                child: ListTile(
-                  contentPadding: EdgeInsets.only(
-                    top: widget.isSubTask ? 0.0 : 4.0,
-                    bottom: widget.isSubTask ? 0.0 : 4.0,
-                  ),
-
-                  onTap: () => openDetailsPage(context),
-                  
-                  leading: Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: SizedBox(
-                      width: 50.0,
-                      child: GestureDetector(
-                        onTap: widget.onToggleCompletion,
-                        behavior: HitTestBehavior.translucent,
-                        child: Center(
-                          child: isCompleted
-                              ? const Icon(CupertinoIcons.largecircle_fill_circle, size: 20.0)
-                              : const Icon(CupertinoIcons.circle, size: 20.0),
+              child: ClipRect(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: widget.isSubTask ? 0.0 : 4.0),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.only(
+                      top: widget.isSubTask ? 0.0 : 4.0,
+                      bottom: widget.isSubTask ? 0.0 : 4.0,
+                    ),
+                
+                    onTap: () => openDetailsPage(context),
+                    
+                    leading: Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: SizedBox(
+                        width: 50.0,
+                        child: GestureDetector(
+                          onTap: widget.onToggleCompletion,
+                          behavior: HitTestBehavior.translucent,
+                          child: Center(
+                            child: isCompleted
+                                ? const Icon(CupertinoIcons.largecircle_fill_circle, size: 20.0)
+                                : const Icon(CupertinoIcons.circle, size: 20.0),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _title,
-                        style: TextStyle(
-                          color: black,
-                          fontWeight: widget.isSubTask ? FontWeight.normal : FontWeight.bold,
-                          fontSize: widget.isSubTask ? 14 : 16,
-                          decoration: isCompleted ? TextDecoration.lineThrough : null,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        softWrap: true,
-                      ),
-                      if (_subtitle.isNotEmpty)
+                    
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          _subtitle,
+                          _title,
                           style: TextStyle(
                             color: black,
-                            fontSize: widget.isSubTask ? 12 : 14,
+                            fontWeight: widget.isSubTask ? FontWeight.normal : FontWeight.bold,
+                            fontSize: widget.isSubTask ? 14 : 16,
                             decoration: isCompleted ? TextDecoration.lineThrough : null,
                           ),
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
-                          maxLines: 2,
                         ),
-                      if (deadlineText.isNotEmpty)
-                        Text(
-                          deadlineText,
-                          style: TextStyle(
-                            fontSize: widget.isSubTask ? 10 : 12,
-                            color: nDaysFromToday<0 
-                              ? red 
-                              : nDaysFromToday == 0
-                                ? orange
-                                : grey,
-                            decoration: isCompleted ? TextDecoration.lineThrough : null,
+                        if (_subtitle.isNotEmpty)
+                          Text(
+                            _subtitle,
+                            style: TextStyle(
+                              color: black,
+                              fontSize: widget.isSubTask ? 12 : 14,
+                              decoration: isCompleted ? TextDecoration.lineThrough : null,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: true,
+                            maxLines: 2,
                           ),
-                        ),
-                    ],
+                        if (deadlineText.isNotEmpty)
+                          Text(
+                            deadlineText,
+                            style: TextStyle(
+                              fontSize: widget.isSubTask ? 10 : 12,
+                              color: nDaysFromToday<0 
+                                ? red 
+                                : nDaysFromToday == 0
+                                  ? orange
+                                  : grey,
+                              decoration: isCompleted ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                      ],
+                    ),
+                    subtitle: null,
+                    trailing: widget.isSubTask
+                      ? null
+                      : widget.hasSubtasks && _subtasks.isNotEmpty
+                        ? Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: IconButton(
+                            onPressed: _toggleSubtaskVisibility, 
+                            color: black,
+                            icon: Icon(
+                              _showSubtasks 
+                                ? CupertinoIcons.chevron_up 
+                                : CupertinoIcons.chevron_down
+                            ),
+                            iconSize: 20,
+                            ),
+                        )
+                        : const SizedBox(width: 20.0)
                   ),
-                  subtitle: null,
-                  trailing: widget.isSubTask
-                    ? null
-                    : widget.hasSubtasks && _subtasks.isNotEmpty
-                      ? Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: IconButton(
-                          onPressed: _toggleSubtaskVisibility, 
-                          color: black,
-                          icon: Icon(
-                            _showSubtasks 
-                              ? CupertinoIcons.chevron_up 
-                              : CupertinoIcons.chevron_down
-                          ),
-                          iconSize: 20,
-                          ),
-                      )
-                      : const SizedBox(width: 20.0)
                 ),
               ),
             ),

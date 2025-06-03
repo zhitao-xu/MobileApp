@@ -24,5 +24,4 @@ const List<String> tasksRepeat = [
   'Weekly',
   'Monthly',
   'Yearly',
-  //'Custom',
 ];

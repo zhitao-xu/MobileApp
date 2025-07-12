@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "30466859261",
+    "project_id": "todo-boimah-xie-xu-dima-polimi",
+    "storage_bucket": "todo-boimah-xie-xu-dima-polimi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30466859261:android:dafa68f5bc6ef45e6b9e94",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlpTY7hiJS56nx-6m3x3RWuNgaJBNJTww"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

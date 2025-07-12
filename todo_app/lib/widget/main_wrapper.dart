@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/bloc/bottom_nav.dart';
-import 'package:flutter_application_1/pages/pages.dart';
-import 'package:flutter_application_1/utils/theme.dart';
+import 'package:todo_app/bloc/bottom_nav.dart';
+import 'package:todo_app/pages/pages.dart';
+import 'package:todo_app/utils/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_application_1/data/todo.dart';
-import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
+import 'package:todo_app/data/todo.dart';
+import 'package:todo_app/todo_bloc/todo_bloc.dart';
 
 class MainWrapper extends StatefulWidget {
   final int pageIndex;

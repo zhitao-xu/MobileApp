@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_application_1/data/todo.dart'; // Import your Todo model
+import 'package:todo_app/data/todo.dart'; // Import your Todo model
 import 'package:intl/intl.dart'; // No longer strictly needed for deadline parsing here, but might be for other formatting elsewhere.
 
 // Define the priority order map

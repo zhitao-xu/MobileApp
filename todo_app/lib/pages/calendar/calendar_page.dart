@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/utils/theme.dart';
-import 'package:flutter_application_1/widget/custom_app_bar.dart';
+import 'package:todo_app/utils/theme.dart';
+import 'package:todo_app/widget/custom_app_bar.dart';
+import 'package:todo_app/data/todo.dart';
 import 'calendar_widget.dart';
-import 'package:flutter_application_1/data/todo.dart';
-
 
 class CalendarPage extends StatefulWidget {
   final List<Todo> todos;

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/pages/settings_page.dart';
-import 'package:flutter_application_1/utils/theme.dart';
+import 'package:todo_app/pages/settings_page.dart';
+import 'package:todo_app/utils/theme.dart';
 import 'package:intl/intl.dart';
 
 class CustomAppBar extends StatelessWidget {

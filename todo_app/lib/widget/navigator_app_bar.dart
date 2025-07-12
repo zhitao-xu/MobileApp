@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_application_1/utils/theme.dart';
+import 'package:todo_app/utils/theme.dart';
 
 class NavigatorAppBar extends StatelessWidget {
   const NavigatorAppBar({

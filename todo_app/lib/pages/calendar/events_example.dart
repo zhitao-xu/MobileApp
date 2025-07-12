@@ -4,7 +4,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/utils/calendar_utils.dart';
+import 'package:todo_app/utils/calendar_utils.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class TableEventsExample extends StatefulWidget {

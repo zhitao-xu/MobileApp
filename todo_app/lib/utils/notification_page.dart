@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/utils/local_notification_manager.dart';
+import 'package:todo_app/utils/local_notification_manager.dart';
 
 class NotificationPage extends StatelessWidget {
   const NotificationPage({super.key});

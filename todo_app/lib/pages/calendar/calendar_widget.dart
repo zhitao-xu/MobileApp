@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/utils/todo_utils.dart';
+import 'package:todo_app/utils/todo_utils.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:flutter_application_1/data/todo.dart';
-import 'package:flutter_application_1/utils/calendar_utils.dart';
-import 'package:flutter_application_1/utils/theme.dart';
-import 'package:flutter_application_1/widget/todo/todo_card.dart'; // Import your new TodoCard widget
+import 'package:todo_app/data/todo.dart';
+import 'package:todo_app/utils/calendar_utils.dart';
+import 'package:todo_app/utils/theme.dart';
+import 'package:todo_app/widget/todo/todo_card.dart'; // Import your new TodoCard widget
 import 'package:flutter_bloc/flutter_bloc.dart'; // Import Bloc for dispatching events
-import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
+import 'package:todo_app/todo_bloc/todo_bloc.dart';
 
 class CalendarWidget extends StatefulWidget {
   final List<Todo> tasks; // Pass your list of tasks to the calendar

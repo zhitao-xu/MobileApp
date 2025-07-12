@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/widget/todo/todo_card.dart';
+import 'package:todo_app/widget/todo/todo_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_application_1/utils/theme.dart';
-import 'package:flutter_application_1/widget/custom_app_bar.dart';
-import 'package:flutter_application_1/data/todo.dart';
-import 'package:flutter_application_1/todo_bloc/todo_bloc.dart';
-import 'package:flutter_application_1/pages/task_details.dart';
-import 'package:flutter_application_1/utils/todo_utils.dart';
+import 'package:todo_app/utils/theme.dart';
+import 'package:todo_app/widget/custom_app_bar.dart';
+import 'package:todo_app/data/todo.dart';
+import 'package:todo_app/todo_bloc/todo_bloc.dart';
+import 'package:todo_app/pages/task_details.dart';
+import 'package:todo_app/utils/todo_utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

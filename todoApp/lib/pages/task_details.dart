@@ -308,7 +308,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         _repeatController.text != _currentItem.repeat;
 
       if (!hasChanges) {
-        // For subtasks with cascading navigation enabled TODO
+        // For subtasks with cascading navigation enabled TODO: better animation
         if(widget.isSubTask && widget.showParentAfterBack){
           Navigator.of(context).pushReplacement(
             PageRouteBuilder(
@@ -338,14 +338,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
             ),
           );
         } else {
-          if(!widget.isSubTask){
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const MainWrapper(pageIndex: 0,)),
-              (Route<dynamic> route) => false,
-            );
-          }else{
           Navigator.pop(context);
-          }
         }
         return;
       }

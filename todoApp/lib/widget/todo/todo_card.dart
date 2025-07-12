@@ -244,7 +244,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                   taskIndex: widget.originalIndex,
                   isSubTask: true,
                   subTaskIndex: index,
-                  showParentAfterBack: true,
+                  showParentAfterBack: false,
                 ))
               );
             },

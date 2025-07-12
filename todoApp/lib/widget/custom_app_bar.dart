@@ -31,7 +31,7 @@ class CustomAppBar extends StatelessWidget {
             children: [
               // Setting Icon
               CircleAvatar(
-                backgroundColor: white,
+                backgroundColor: lightBlue,
                 child: GestureDetector(
                   onTap: () {
                     if (kDebugMode) {
@@ -44,7 +44,8 @@ class CustomAppBar extends StatelessWidget {
                   },
                   child: const Icon(
                     CupertinoIcons.settings,
-                    size: 30,
+                    size: 35,
+                    color: white
                   ),
                 ),
               ),
@@ -60,7 +61,7 @@ class CustomAppBar extends StatelessWidget {
               GestureDetector(
                 child: Icon(
                   CupertinoIcons.slider_horizontal_3,
-                  size: 40,
+                  size: 35,
                   color: white,
                 ),
                 onTap: () {

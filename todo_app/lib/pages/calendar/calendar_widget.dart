@@ -195,6 +195,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                       onDelete: () => _removeTodo(task), // Call the Bloc's RemoveTodo
                       onToggleCompletion: () => _toggleTodoStatus(originalIndex), // Call the Bloc's AlterTodo
                       showDate: false,
+                      previousPageTitle: "Calendar",
                     );
                     
                   },

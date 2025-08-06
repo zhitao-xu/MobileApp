@@ -23,6 +23,8 @@ class HomePageState extends State<HomePage> {
 
   final GlobalKey _searchBarKey = GlobalKey();
 
+  final String previousPageTitle = "To-do List";
+
   Timer? _debounceTimer;
 
   removeTodo(Todo todo) {
@@ -94,7 +96,7 @@ class HomePageState extends State<HomePage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const TaskDetailsPage(),
+                builder: (_) => TaskDetailsPage(previousPageTitle: previousPageTitle,),
               ),
             );
           },
@@ -244,7 +246,8 @@ class HomePageState extends State<HomePage> {
                                     context.read<TodoBloc>().add(
                                       RemoveSubTask(state.todos.indexOf(todo), subTaskIndex),
                                     );
-                                  }
+                                  },
+                                  previousPageTitle: previousPageTitle,
                                 ),
                               ),
                             ],
@@ -317,6 +320,7 @@ class HomePageState extends State<HomePage> {
                                         RemoveSubTask(state.todos.indexOf(todo), subTaskIndex),
                                       );
                                     },
+                                    previousPageTitle: previousPageTitle,
                                   ),
                                 ),
                               ],
@@ -348,6 +352,7 @@ class HomePageState extends State<HomePage> {
                                         RemoveSubTask(state.todos.indexOf(todo), subTaskIndex),
                                       );
                                     },
+                                    previousPageTitle: previousPageTitle,
                                   ),
                                 ),
                               ],

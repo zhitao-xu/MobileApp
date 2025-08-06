@@ -20,6 +20,8 @@ class TodoCard<T> extends StatefulWidget {
   final VoidCallback? onToggleSubtaskVisibility;
   final void Function(SubTask, int)? onSubTaskToggleCompletion;
   final void Function(SubTask, int)? onSubTaskDelete;
+  // used to show the previous page title next to the back icon on Navigation Bar
+  final String previousPageTitle;
 
   const TodoCard({
     super.key,
@@ -36,6 +38,7 @@ class TodoCard<T> extends StatefulWidget {
     this.onToggleSubtaskVisibility,
     this.onSubTaskToggleCompletion,
     this.onSubTaskDelete,
+    required this.previousPageTitle,
   });
 
   // Factory constructors for easier usage
@@ -53,6 +56,7 @@ class TodoCard<T> extends StatefulWidget {
     VoidCallback? onToggleSubtaskVisibility,
     void Function(SubTask, int)? onSubTaskToggleCompletion,
     void Function(SubTask, int)? onSubTaskDelete,
+    required String previousPageTitle,
   }) {
     return TodoCard<Todo>(
       key: key,
@@ -68,7 +72,8 @@ class TodoCard<T> extends StatefulWidget {
       hasSubtasks: hasSubtasks,
       onToggleSubtaskVisibility: onToggleSubtaskVisibility,
       onSubTaskToggleCompletion: onSubTaskToggleCompletion,
-      onSubTaskDelete: onSubTaskDelete,
+      onSubTaskDelete: onSubTaskDelete, 
+      previousPageTitle: '',
     );
   }
 
@@ -82,6 +87,7 @@ class TodoCard<T> extends StatefulWidget {
     bool showDate = true,
     bool showTime = true,
     VoidCallback? onTap,
+    required String previousPageTitle,
   }) {
     return TodoCard<SubTask>(
       key: key,
@@ -96,6 +102,7 @@ class TodoCard<T> extends StatefulWidget {
       onTap: onTap,
       hasSubtasks: false,
       onToggleSubtaskVisibility: null,
+      previousPageTitle: '',
     );
   }
 
@@ -202,13 +209,13 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
     
     if (widget.isSubTask) {
       if (!context.mounted) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
+      await Navigator.of(context).push(
+        CupertinoPageRoute(
           builder: (context) => TaskDetailsPage(
             taskIndex: widget.originalIndex,
             isSubTask: true,
             subTaskIndex: 0,
+            previousPageTitle: widget.previousPageTitle,
           ),
         ),
       );
@@ -216,11 +223,11 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
     }
 
     if (!context.mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TaskDetailsPage(
+    await Navigator.of(context).push(
+      CupertinoPageRoute(builder: (context) => TaskDetailsPage(
         taskIndex: widget.originalIndex, 
         isSubTask: false,
+        previousPageTitle: widget.previousPageTitle,
       )),
     );
   }
@@ -238,13 +245,12 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
           return TodoCard<SubTask>(
             onTap: () {
               if(!context.mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TaskDetailsPage(
+              Navigator.of(context).push(
+                CupertinoPageRoute(builder: (context) => TaskDetailsPage(
                   taskIndex: widget.originalIndex,
                   isSubTask: true,
                   subTaskIndex: index,
-                  showParentAfterBack: true,
+                  previousPageTitle: widget.previousPageTitle,
                 ))
               );
             },
@@ -260,7 +266,8 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
             showTime: widget.showTime,
             isSubTask: true,
             hasSubtasks: false,
-            onToggleSubtaskVisibility: null,
+            onToggleSubtaskVisibility: null, 
+            previousPageTitle: '',
           );
         }),
       ],

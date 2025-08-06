@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:todo_app/pages/analytics_page.dart';
-import 'package:todo_app/pages/settings_page.dart';
 import 'package:todo_app/utils/local_notification_manager.dart';
 import 'package:todo_app/utils/theme.dart';
-import 'package:todo_app/widget/calendar_page_wrapper.dart';
 import 'package:todo_app/widget/main_wrapper.dart';
 import 'package:todo_app/bloc/bottom_nav.dart';
 import 'package:todo_app/todo_bloc/todo_bloc.dart';
@@ -45,23 +42,7 @@ class MyApp extends StatelessWidget {
         title: 'To-do list',
         theme: Themes.light,
         themeMode: ThemeMode.light,
-        initialRoute: '/',
-        routes: {
-          /*
-          How to use these routes: 
-
-          Navigator.pushNamed(
-            context,
-            <specific route (above)>,
-            arguments: { <ags1>, <ags2>, ...} // if needed
-          );
-
-          */
-          '/': (context) => const MainWrapper(pageIndex: 0),
-          '/settings': (context) => const SettingsPage(),
-          '/calendar': (context) => const CalendarPageWrapper(),
-          '/analytics': (context) => const AnalyticsPage(),
-        },
+        home: const MainWrapper(pageIndex: 0,),
       ),
     );
   }

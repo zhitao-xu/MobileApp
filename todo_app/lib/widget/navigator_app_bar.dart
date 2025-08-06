@@ -30,7 +30,7 @@ class NavigatorAppBar extends StatelessWidget {
                   if (onBackTap != null) {
                     await onBackTap!();
                   } else {
-                    Navigator.of(context).pop();
+                    Navigator.pop(context);
                   }
                 },
                 behavior: HitTestBehavior.opaque,

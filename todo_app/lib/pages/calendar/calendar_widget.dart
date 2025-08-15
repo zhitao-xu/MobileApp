@@ -96,8 +96,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1), // shadow color
-                  spreadRadius: 1,  // how wide the shadow spreads
-                  blurRadius: 2,    // how soft the shadow looks
+                  spreadRadius: 0.5,  // how wide the shadow spreads
+                  blurRadius: 1,    // how soft the shadow looks
                   offset: const Offset(0, 3), // x,y offset
                 ),
               ],

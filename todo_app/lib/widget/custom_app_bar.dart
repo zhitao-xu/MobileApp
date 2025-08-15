@@ -43,7 +43,7 @@ class CustomAppBar extends StatelessWidget {
                     );
                   },
                   child: const Icon(
-                    CupertinoIcons.settings,
+                    CupertinoIcons.gear,
                     size: 35,
                     color: white
                   ),

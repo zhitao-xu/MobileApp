@@ -42,6 +42,9 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   timezone:
 
+  # testing
+  rename: ^3.1.0
+
   # Database
   hive: ^2.2.3
   hive_flutter: ^1.1.0
@@ -77,6 +80,7 @@ dependencies:
   bloc: ^9.0.0
   firebase_core: ^3.13.1
   flutter_heatmap_calendar: ^1.0.5
+  firebase_auth: ^5.6.2
 
 dev_dependencies:
   bloc_test: ^10.0.0

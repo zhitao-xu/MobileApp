@@ -199,11 +199,10 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
       widget.onTap!();
       return;
     }
-    
+
     if (widget.isSubTask) {
       if (!context.mounted) return;
-      await Navigator.push(
-        context,
+      await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => TaskDetailsPage(
             taskIndex: widget.originalIndex,
@@ -216,12 +215,12 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
     }
 
     if (!context.mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TaskDetailsPage(
-        taskIndex: widget.originalIndex, 
-        isSubTask: false,
-      )),
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+          builder: (context) => TaskDetailsPage(
+                taskIndex: widget.originalIndex,
+                isSubTask: false,
+              )),
     );
   }
 
@@ -237,16 +236,15 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
           final subtask = _subtasks[index];
           return TodoCard<SubTask>(
             onTap: () {
-              if(!context.mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TaskDetailsPage(
-                  taskIndex: widget.originalIndex,
-                  isSubTask: true,
-                  subTaskIndex: index,
-                  showParentAfterBack: false,
-                ))
-              );
+              if (!context.mounted) return;
+              Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) => TaskDetailsPage(
+                            taskIndex: widget.originalIndex,
+                            isSubTask: true,
+                            subTaskIndex: index,
+                            showParentAfterBack: false,
+                          )));
             },
             item: subtask,
             originalIndex: widget.originalIndex,
@@ -270,16 +268,15 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
   @override
   Widget build(BuildContext context) {
     final isCompleted = _isDone;
-    final backgroundColor = isCompleted
-        ? Colors.grey[300]
-        : getPriorityColor(_priority);
+    final backgroundColor =
+        isCompleted ? Colors.grey[300] : getPriorityColor(_priority);
 
     DateTime? currentDeadline = _deadline;
     String deadlineText = '';
     int nDaysFromToday = 0;
 
     if (currentDeadline != null) {
-      nDaysFromToday =  daysFromToday(currentDeadline);
+      nDaysFromToday = daysFromToday(currentDeadline);
       String? dayLabel;
       if (nDaysFromToday == -1) {
         dayLabel = 'Yesterday';
@@ -291,12 +288,15 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
 
       if (widget.showDate && widget.showTime) {
         if (dayLabel == null) {
-          deadlineText = DateFormat('dd-MM-yyyy, HH:mm').format(currentDeadline);
+          deadlineText =
+              DateFormat('dd-MM-yyyy, HH:mm').format(currentDeadline);
         } else {
-          deadlineText = '$dayLabel , ${DateFormat('HH:mm').format(currentDeadline)}';
+          deadlineText =
+              '$dayLabel , ${DateFormat('HH:mm').format(currentDeadline)}';
         }
       } else if (widget.showDate) {
-        deadlineText = dayLabel ?? DateFormat('dd-MM-yyyy').format(currentDeadline);
+        deadlineText =
+            dayLabel ?? DateFormat('dd-MM-yyyy').format(currentDeadline);
       } else if (widget.showTime) {
         deadlineText = DateFormat('HH:mm').format(currentDeadline);
       } else {
@@ -328,7 +328,9 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                 motion: const ScrollMotion(),
                 children: [
                   CustomSlidableAction(
-                    onPressed: widget.onDelete != null ? (_) => widget.onDelete!() : null,
+                    onPressed: widget.onDelete != null
+                        ? (_) => widget.onDelete!()
+                        : null,
                     backgroundColor: const Color(0xFFFE4A49),
                     child: const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -347,13 +349,14 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                   if (!isCompleted)
                     CustomSlidableAction(
                       onPressed: widget.onToggleCompletion != null
-                        ? (context) => widget.onToggleCompletion!()
-                        : null,
+                          ? (context) => widget.onToggleCompletion!()
+                          : null,
                       backgroundColor: green,
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(CupertinoIcons.checkmark_alt_circle_fill, color: white),
+                          Icon(CupertinoIcons.checkmark_alt_circle_fill,
+                              color: white),
                           SizedBox(height: 4),
                           Text('Complete', style: TextStyle(color: white)),
                         ],
@@ -362,13 +365,14 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
                   if (isCompleted)
                     CustomSlidableAction(
                       onPressed: widget.onToggleCompletion != null
-                        ? (context) => widget.onToggleCompletion!()
-                        : null,
+                          ? (context) => widget.onToggleCompletion!()
+                          : null,
                       backgroundColor: orange,
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(CupertinoIcons.refresh_circled_solid, color: white),
+                          Icon(CupertinoIcons.refresh_circled_solid,
+                              color: white),
                           SizedBox(height: 4),
                           Text('Undo', style: TextStyle(color: white)),
                         ],
@@ -378,91 +382,97 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
               ),
               child: ClipRect(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: widget.isSubTask ? 0.0 : 4.0),
+                  padding: EdgeInsets.symmetric(
+                      vertical: widget.isSubTask ? 0.0 : 4.0),
                   child: ListTile(
-                    contentPadding: EdgeInsets.only(
-                      top: widget.isSubTask ? 0.0 : 4.0,
-                      bottom: widget.isSubTask ? 0.0 : 4.0,
-                    ),
-                
-                    onTap: () => openDetailsPage(context),
-                    
-                    leading: Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: SizedBox(
-                        width: 50.0,
-                        child: GestureDetector(
-                          onTap: widget.onToggleCompletion,
-                          behavior: HitTestBehavior.translucent,
-                          child: Center(
-                            child: isCompleted
-                                ? const Icon(CupertinoIcons.largecircle_fill_circle, size: 20.0)
-                                : const Icon(CupertinoIcons.circle, size: 20.0),
+                      contentPadding: EdgeInsets.only(
+                        top: widget.isSubTask ? 0.0 : 4.0,
+                        bottom: widget.isSubTask ? 0.0 : 4.0,
+                      ),
+                      onTap: () => openDetailsPage(context),
+                      leading: Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: SizedBox(
+                          width: 50.0,
+                          child: GestureDetector(
+                            onTap: widget.onToggleCompletion,
+                            behavior: HitTestBehavior.translucent,
+                            child: Center(
+                              child: isCompleted
+                                  ? const Icon(
+                                      CupertinoIcons.largecircle_fill_circle,
+                                      size: 20.0)
+                                  : const Icon(CupertinoIcons.circle,
+                                      size: 20.0),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _title,
-                          style: TextStyle(
-                            color: black,
-                            fontWeight: widget.isSubTask ? FontWeight.normal : FontWeight.bold,
-                            fontSize: widget.isSubTask ? 14 : 16,
-                            decoration: isCompleted ? TextDecoration.lineThrough : null,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          softWrap: true,
-                        ),
-                        if (_subtitle.isNotEmpty)
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            _subtitle,
+                            _title,
                             style: TextStyle(
                               color: black,
-                              fontSize: widget.isSubTask ? 12 : 14,
-                              decoration: isCompleted ? TextDecoration.lineThrough : null,
+                              fontWeight: widget.isSubTask
+                                  ? FontWeight.normal
+                                  : FontWeight.bold,
+                              fontSize: widget.isSubTask ? 14 : 16,
+                              decoration: isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
                             ),
                             overflow: TextOverflow.ellipsis,
                             softWrap: true,
-                            maxLines: 2,
                           ),
-                        if (deadlineText.isNotEmpty)
-                          Text(
-                            deadlineText,
-                            style: TextStyle(
-                              fontSize: widget.isSubTask ? 10 : 12,
-                              color: nDaysFromToday<0 
-                                ? red 
-                                : nDaysFromToday == 0
-                                  ? orange
-                                  : grey,
-                              decoration: isCompleted ? TextDecoration.lineThrough : null,
+                          if (_subtitle.isNotEmpty)
+                            Text(
+                              _subtitle,
+                              style: TextStyle(
+                                color: black,
+                                fontSize: widget.isSubTask ? 12 : 14,
+                                decoration: isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              maxLines: 2,
                             ),
-                          ),
-                      ],
-                    ),
-                    subtitle: null,
-                    trailing: widget.isSubTask
-                      ? null
-                      : widget.hasSubtasks && _subtasks.isNotEmpty
-                        ? Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: IconButton(
-                            onPressed: _toggleSubtaskVisibility, 
-                            color: black,
-                            icon: Icon(
-                              _showSubtasks 
-                                ? CupertinoIcons.chevron_up 
-                                : CupertinoIcons.chevron_down
+                          if (deadlineText.isNotEmpty)
+                            Text(
+                              deadlineText,
+                              style: TextStyle(
+                                fontSize: widget.isSubTask ? 10 : 12,
+                                color: nDaysFromToday < 0
+                                    ? red
+                                    : nDaysFromToday == 0
+                                        ? orange
+                                        : grey,
+                                decoration: isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
                             ),
-                            iconSize: 20,
-                            ),
-                        )
-                        : const SizedBox(width: 20.0)
-                  ),
+                        ],
+                      ),
+                      subtitle: null,
+                      trailing: widget.isSubTask
+                          ? null
+                          : widget.hasSubtasks && _subtasks.isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: IconButton(
+                                    onPressed: _toggleSubtaskVisibility,
+                                    color: black,
+                                    icon: Icon(_showSubtasks
+                                        ? CupertinoIcons.chevron_up
+                                        : CupertinoIcons.chevron_down),
+                                    iconSize: 20,
+                                  ),
+                                )
+                              : const SizedBox(width: 20.0)),
                 ),
               ),
             ),

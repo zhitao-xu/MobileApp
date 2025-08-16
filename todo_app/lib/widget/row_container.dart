@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:todo_app/utils/theme.dart';
 
+class RowItem {
+  final Widget? icon;
+  final Widget? title;
+  final Widget? info;
+  final VoidCallback? onTap;
+
+  RowItem({this.icon, this.title, this.info, this.onTap});
+}
+
 Widget buildContainer({
   required BuildContext context,
-  required List<Widget> icons,
-  required List<Widget> title,
-  required List<Widget> info,
-  required List<VoidCallback> onTap,
+  required List<RowItem> items,
 }) {
-  assert(icons.length == title.length && title.length == info.length && info.length == onTap.length, 'All lists must be of the same length');
+  assert(items.isNotEmpty, 'At least one item must be provided');
 
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
@@ -21,42 +27,36 @@ Widget buildContainer({
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
-        children: _buildRow(icons, title, info, onTap),
+        children: _buildRow(items),
       ),
     ),
   );
 }
 
-List<Widget> _buildRow(
-  List<Widget> icons,
-  List<Widget> title,
-  List<Widget> info,
-  List<VoidCallback> onTap,
-) {
+List<Widget> _buildRow(List<RowItem> items) {
   List<Widget> rows = [];
-  
-  for (int i = 0; i < icons.length; i++) {
+  for (int i = 0; i < items.length; i++) {
+    final item = items[i];
     rows.add(
       InkWell(
-        onTap: onTap[i],
+        onTap: item.onTap,
         child: Row(
           mainAxisSize: MainAxisSize.max,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 10.0, 10.0, 10.0),
-              child: icons[i],
-            ),
-            title[i],
+            if (item.icon != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 10.0, 10.0, 10.0),
+                child: item.icon!,
+              ),
+            if (item.title != null) item.title!,
             const Spacer(),
-            info[i],
+            if (item.info != null) item.info!,
           ],
         ),
       ),
     );
-    if(icons.length > 1){
-      if (i < icons.length - 1) {
-        rows.add(myDivider());
-      }
+    if (items.length > 1 && i < items.length - 1) {
+      rows.add(myDivider());
     }
   }
   return rows;

@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:todo_app/pages/settings_page.dart';
+import 'package:todo_app/pages/settings/settings_page.dart';
 import 'package:todo_app/utils/theme.dart';
 import 'package:intl/intl.dart';
 
-class CustomAppBar extends StatelessWidget {
-  const CustomAppBar({
+class MainAppBar extends StatelessWidget {
+  const MainAppBar({
     super.key,
     required this.title,
     required this.isHome,
@@ -37,8 +37,7 @@ class CustomAppBar extends StatelessWidget {
                     if (kDebugMode) {
                       print('Setting Icon Tapped');
                     }
-                    Navigator.push(
-                      context,
+                    Navigator.of(context).push(
                       MaterialPageRoute(builder: (context) => const SettingsPage()),
                     );
                   },

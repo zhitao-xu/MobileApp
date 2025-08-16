@@ -2,87 +2,38 @@
 // ignore_for_file: type=lint
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+    show defaultTargetPlatform, TargetPlatform;
 
-/// Default [FirebaseOptions] for use with your Firebase apps.
-///
-/// Example:
-/// ```dart
-/// import 'firebase_options.dart';
-/// // ...
-/// await Firebase.initializeApp(
-///   options: DefaultFirebaseOptions.currentPlatform,
-/// );
-/// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
-    if (kIsWeb) {
-      return web;
-    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
         return ios;
-      case TargetPlatform.macOS:
-        return macos;
-      case TargetPlatform.windows:
-        return windows;
-      case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
         );
     }
   }
-
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBAILbicei2p_XI2OzZUzQV5hLMWZosf-Y',
-    appId: '1:30466859261:web:0fb91d15c232e7d46b9e94',
-    messagingSenderId: '30466859261',
-    projectId: 'todo-boimah-xie-xu-dima-polimi',
-    authDomain: 'todo-boimah-xie-xu-dima-polimi.firebaseapp.com',
-    storageBucket: 'todo-boimah-xie-xu-dima-polimi.firebasestorage.app',
-    measurementId: 'G-7N69XRW78Z',
-  );
-
+  
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBlpTY7hiJS56nx-6m3x3RWuNgaJBNJTww',
-    appId: '1:30466859261:android:dafa68f5bc6ef45e6b9e94',
-    messagingSenderId: '30466859261',
-    projectId: 'todo-boimah-xie-xu-dima-polimi',
-    storageBucket: 'todo-boimah-xie-xu-dima-polimi.firebasestorage.app',
+    apiKey: 'AIzaSyADdj7HBidfDxJ1LnX5_oO9-toIHmGwGNk',
+    appId: '1:1066473564035:android:758635a1bfac63bbfef8b6',
+    messagingSenderId: '1066473564035',
+    projectId: 'dima-2c0a8',
+    storageBucket: 'dima-2c0a8.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCSQySAw8NOEJSLs5Y3v2eHeOhUP5gkPDI',
-    appId: '1:30466859261:ios:db9ab28aa0bb33c86b9e94',
-    messagingSenderId: '30466859261',
-    projectId: 'todo-boimah-xie-xu-dima-polimi',
-    storageBucket: 'todo-boimah-xie-xu-dima-polimi.firebasestorage.app',
+    apiKey: 'AIzaSyDo0o5X2mHikYiLzIZjPTw42GVqLi3NyYI',
+    appId: '1:1066473564035:ios:842f07ed702fa81bfef8b6',
+    messagingSenderId: '1066473564035',
+    projectId: 'dima-2c0a8',
+    storageBucket: 'dima-2c0a8.firebasestorage.app',
     iosBundleId: 'com.example.flutterApplication1',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCSQySAw8NOEJSLs5Y3v2eHeOhUP5gkPDI',
-    appId: '1:30466859261:ios:db9ab28aa0bb33c86b9e94',
-    messagingSenderId: '30466859261',
-    projectId: 'todo-boimah-xie-xu-dima-polimi',
-    storageBucket: 'todo-boimah-xie-xu-dima-polimi.firebasestorage.app',
-    iosBundleId: 'com.example.flutterApplication1',
-  );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBAILbicei2p_XI2OzZUzQV5hLMWZosf-Y',
-    appId: '1:30466859261:web:8c8c7cbd0e70de066b9e94',
-    messagingSenderId: '30466859261',
-    projectId: 'todo-boimah-xie-xu-dima-polimi',
-    authDomain: 'todo-boimah-xie-xu-dima-polimi.firebaseapp.com',
-    storageBucket: 'todo-boimah-xie-xu-dima-polimi.firebasestorage.app',
-    measurementId: 'G-SZ2XTV35GH',
-  );
 }

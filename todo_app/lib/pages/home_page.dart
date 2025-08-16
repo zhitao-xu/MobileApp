@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:todo_app/widget/todo/todo_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_app/utils/theme.dart';
-import 'package:todo_app/widget/custom_app_bar.dart';
+import 'package:todo_app/widget/main_app_bar.dart';
 import 'package:todo_app/data/todo.dart';
 import 'package:todo_app/todo_bloc/todo_bloc.dart';
 import 'package:todo_app/pages/task_details.dart';
@@ -80,7 +80,7 @@ class HomePageState extends State<HomePage> {
         preferredSize: const Size.fromHeight(100),
         child: GestureDetector(
           
-          child: CustomAppBar(
+          child: MainAppBar(
             title: "To-do List\n",
             isHome: true,
           ),
@@ -91,8 +91,7 @@ class HomePageState extends State<HomePage> {
         height: 70,
         child: FloatingActionButton(
           onPressed: () {
-            Navigator.push(
-              context,
+            Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const TaskDetailsPage(),
               ),

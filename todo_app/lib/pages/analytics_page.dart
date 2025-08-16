@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo_app/utils/theme.dart';
-import 'package:todo_app/widget/custom_app_bar.dart';
+import 'package:todo_app/widget/main_app_bar.dart';
 
 class AnalyticsPage extends StatefulWidget {
   const AnalyticsPage({super.key});
@@ -17,7 +17,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(100),
-        child: CustomAppBar(
+        child: MainAppBar(
           title: "Analitics\n",
           isHome: false,
         ),

@@ -202,8 +202,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
 
     if (widget.isSubTask) {
       if (!context.mounted) return;
-      await Navigator.push(
-        context,
+      await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => TaskDetailsPage(
             taskIndex: widget.originalIndex,
@@ -216,8 +215,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
     }
 
     if (!context.mounted) return;
-    await Navigator.push(
-      context,
+    await Navigator.of(context).push(
       MaterialPageRoute(
           builder: (context) => TaskDetailsPage(
                 taskIndex: widget.originalIndex,
@@ -239,8 +237,7 @@ class _TodoCardState<T> extends State<TodoCard<T>> {
           return TodoCard<SubTask>(
             onTap: () {
               if (!context.mounted) return;
-              Navigator.push(
-                  context,
+              Navigator.of(context).push(
                   MaterialPageRoute(
                       builder: (context) => TaskDetailsPage(
                             taskIndex: widget.originalIndex,

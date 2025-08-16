@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo_app/utils/theme.dart';
-import 'package:todo_app/widget/custom_app_bar.dart';
+import 'package:todo_app/widget/main_app_bar.dart';
 import 'calendar_widget.dart';
 import 'package:todo_app/data/todo.dart';
 
@@ -19,9 +19,9 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: lightBlue,
-      appBar: const PreferredSize( // Removed PreferredSize for CustomAppBar - assuming it's handling its own size
-        preferredSize: Size.fromHeight(100), // Assuming CustomAppBar uses this height
-        child: CustomAppBar(
+      appBar: const PreferredSize( // Removed PreferredSize for MainAppBar - assuming it's handling its own size
+        preferredSize: Size.fromHeight(100), // Assuming MainAppBar uses this height
+        child: MainAppBar(
           title: "Calendar\n",
           isHome: false,
         ),

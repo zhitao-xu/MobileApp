@@ -85,122 +85,144 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        TableCalendar(
-          firstDay: kFirstDay,
-          lastDay: kLastDay,
-          focusedDay: _focusedDay,
-          calendarFormat: _calendarFormat,
-          selectedDayPredicate: (day) {
-            // Use `selectedDayPredicate` to mark a day as selected
-            return isSameDay(_selectedDay, day);
-          },
-          onDaySelected: (selectedDay, focusedDay) {
-            if (!isSameDay(_selectedDay, selectedDay)) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay; // update `_focusedDay` to make it scroll to the selected day
-              });
-              _updateSelectedDayTasks(selectedDay);
-            }
-          },
-          onPageChanged: (focusedDay) {
-            _focusedDay = focusedDay;
-          },
-          eventLoader: _getTasksForDay, // This is crucial for the dots!
-          calendarBuilders: CalendarBuilders(
-            markerBuilder: (context, date, events) {
-              if (events.isNotEmpty) {
-                return Positioned(
-                  // Center the marker horizontally
-                  left: 0,
-                  right: 0,
-                  
-                  bottom: 10.0,
-                  child: Align( // Use Align to actually center the marker itself
-                    alignment: Alignment.bottomCenter,
-                    child: _buildEventsMarker(date, events),
-                  ),
-                );
-              }
-              return null;
-            },
-          ),
-          headerStyle: const HeaderStyle(
-            // Set formatButtonVisible to false to hide the format button
-            formatButtonVisible: false,
-            titleCentered: true,
-            // Set formatButtonShowsNext to false to ensure no other format buttons appear
-            formatButtonShowsNext: false,
-          ),
-          calendarStyle: CalendarStyle(
-            // Style for the "today" circle
-            todayDecoration: BoxDecoration(
-              color: transparentLightBlue, // Example: A semi-transparent orange
-              shape: BoxShape.circle,
-            ),
-            todayTextStyle: const TextStyle(
-              color: Colors.white, // Text color for today's date
-              fontWeight: FontWeight.bold,
-            ),
-
-            // Style for the "selected day" circle
-            selectedDecoration: const BoxDecoration(
-              color: lightBlue, // Example: Solid orange
-              shape: BoxShape.circle,
-            ),
-            selectedTextStyle: const TextStyle(
-              color: Colors.white, // Text color for the selected date
-              fontWeight: FontWeight.bold,
-            ),
-
-            // You can also style default days, weekend days, etc.
-            defaultTextStyle: const TextStyle(color: black), // Default text color for days
-            weekendTextStyle: const TextStyle(color: red), // Text color for weekend days
-            outsideTextStyle: TextStyle(color: grey), // Text color for days outside the current month
-          ),
-        ),
-        const SizedBox(height: 8.0),
-        Expanded(
-          child: _selectedDayTasks.isEmpty
-              ? const Center(child: Text('No tasks due on this day.'))
-              : ListView.builder(
-                  itemCount: _selectedDayTasks.length,
-                  itemBuilder: (context, index) {
-                    final task = _selectedDayTasks[index];
-                    
-                    // Find the original index of this task in the overall tasks list
-                    // This is crucial for TaskDetailsPage if it relies on that index.
-                    // If TaskDetailsPage could take a Todo object or its ID, this would be simpler.
-                    // Find the original index of this task in the overall tasks list (widget.tasks)
-                    // This is IMPORTANT because AlterTodo (and UpdateTodo) in your Bloc
-                    // rely on this original index.
-                    final int originalIndex = widget.tasks.indexOf(task);
-
-                    // Ensure originalIndex is valid. If a task isn't found, it's an error in logic.
-                    // For safety, you might add a check or handle it, but it should ideally always be found.
-                    if (originalIndex == -1) {
-                      if (kDebugMode) {
-                        print("Warning: Task not found in main tasks list (id: ${task.id}) for calendar display.");
-                      }
-                      // You might return a placeholder or skip this item.
-                      return const SizedBox.shrink();
-                    }
-
-                    return TodoCard.forTodo(
-                      key: ValueKey(task.id), // Use unique ID as key for stability
-                      todo: task,
-                      originalIndex: originalIndex, // Pass the index the Bloc expects
-                      onDelete: () => _removeTodo(task), // Call the Bloc's RemoveTodo
-                      onToggleCompletion: () => _toggleTodoStatus(originalIndex), // Call the Bloc's AlterTodo
-                      showDate: false,
-                    );
-                    
-                  },
+    return Container(
+      color: backgoundGrey,
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white, // background color
+              borderRadius: BorderRadius.circular(8), // rounded corners
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1), // shadow color
+                  spreadRadius: 0.5,  // how wide the shadow spreads
+                  blurRadius: 1,    // how soft the shadow looks
+                  offset: const Offset(0, 3), // x,y offset
                 ),
-        ),
-      ],
+              ],
+            ),
+            child: TableCalendar(
+              firstDay: kFirstDay,
+              lastDay: kLastDay,
+              focusedDay: _focusedDay,
+              calendarFormat: _calendarFormat,
+              selectedDayPredicate: (day) {
+                // Use `selectedDayPredicate` to mark a day as selected
+                return isSameDay(_selectedDay, day);
+              },
+              onDaySelected: (selectedDay, focusedDay) {
+                if (!isSameDay(_selectedDay, selectedDay)) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay; // update `_focusedDay` to make it scroll to the selected day
+                  });
+                  _updateSelectedDayTasks(selectedDay);
+                }
+              },
+              onPageChanged: (focusedDay) {
+                _focusedDay = focusedDay;
+              },
+              eventLoader: _getTasksForDay, // This is crucial for the dots!
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, date, events) {
+                  if (events.isNotEmpty) {
+                    return Positioned(
+                      // Center the marker horizontally
+                      left: 0,
+                      right: 0,
+                      
+                      bottom: 10.0,
+                      child: Align( // Use Align to actually center the marker itself
+                        alignment: Alignment.bottomCenter,
+                        child: _buildEventsMarker(date, events),
+                      ),
+                    );
+                  }
+                  return null;
+                },
+              ),
+              headerStyle: const HeaderStyle(
+                // Set formatButtonVisible to false to hide the format button
+                formatButtonVisible: false,
+                titleCentered: true,
+                // Set formatButtonShowsNext to false to ensure no other format buttons appear
+                formatButtonShowsNext: false,
+              ),
+              calendarStyle: CalendarStyle(
+                // Style for the "today" circle
+                todayDecoration: BoxDecoration(
+                  color: transparentLightBlue, // Example: A semi-transparent orange
+                  shape: BoxShape.circle,
+                ),
+                todayTextStyle: const TextStyle(
+                  color: Colors.white, // Text color for today's date
+                  fontWeight: FontWeight.bold,
+                ),
+            
+                // Style for the "selected day" circle
+                selectedDecoration: const BoxDecoration(
+                  color: lightBlue, // Example: Solid orange
+                  shape: BoxShape.circle,
+                ),
+                selectedTextStyle: const TextStyle(
+                  color: Colors.white, // Text color for the selected date
+                  fontWeight: FontWeight.bold,
+                ),
+            
+                // You can also style default days, weekend days, etc.
+                defaultTextStyle: const TextStyle(color: black), // Default text color for days
+                weekendTextStyle: const TextStyle(color: red), // Text color for weekend days
+                outsideTextStyle: TextStyle(color: grey), // Text color for days outside the current month
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 8,
+          ),
+          Expanded(
+            child: _selectedDayTasks.isEmpty
+                ? const Center(child: Text('No tasks due on this day.'))
+                : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListView.builder(
+                      itemCount: _selectedDayTasks.length,
+                      itemBuilder: (context, index) {
+                        final task = _selectedDayTasks[index];
+                        
+                        // Find the original index of this task in the overall tasks list
+                        // This is crucial for TaskDetailsPage if it relies on that index.
+                        // If TaskDetailsPage could take a Todo object or its ID, this would be simpler.
+                        // Find the original index of this task in the overall tasks list (widget.tasks)
+                        // This is IMPORTANT because AlterTodo (and UpdateTodo) in your Bloc
+                        // rely on this original index.
+                        final int originalIndex = widget.tasks.indexOf(task);
+                  
+                        // Ensure originalIndex is valid. If a task isn't found, it's an error in logic.
+                        // For safety, you might add a check or handle it, but it should ideally always be found.
+                        if (originalIndex == -1) {
+                          if (kDebugMode) {
+                            print("Warning: Task not found in main tasks list (id: ${task.id}) for calendar display.");
+                          }
+                          // You might return a placeholder or skip this item.
+                          return const SizedBox.shrink();
+                        }
+                  
+                        return TodoCard.forTodo(
+                          key: ValueKey(task.id), // Use unique ID as key for stability
+                          todo: task,
+                          originalIndex: originalIndex, // Pass the index the Bloc expects
+                          onDelete: () => _removeTodo(task), // Call the Bloc's RemoveTodo
+                          onToggleCompletion: () => _toggleTodoStatus(originalIndex), // Call the Bloc's AlterTodo
+                          showDate: false,
+                        );
+                        
+                      },
+                    ),
+                ),
+          ),
+        ],
+      ),
     );
   }
 

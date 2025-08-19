@@ -5,9 +5,16 @@ class RowItem {
   final Widget? icon;
   final Widget? title;
   final Widget? info;
+  final bool fullWidthTappable;
   final VoidCallback? onTap;
 
-  RowItem({this.icon, this.title, this.info, this.onTap});
+  RowItem({
+    this.icon, 
+    this.title, 
+    this.info, 
+    this.fullWidthTappable = false,
+    this.onTap,
+  });
 }
 
 Widget buildContainer({
@@ -37,24 +44,37 @@ List<Widget> _buildRow(List<RowItem> items) {
   List<Widget> rows = [];
   for (int i = 0; i < items.length; i++) {
     final item = items[i];
-    rows.add(
-      InkWell(
-        onTap: item.onTap,
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            if (item.icon != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 10.0, 10.0, 10.0),
-                child: item.icon!,
-              ),
-            if (item.title != null) item.title!,
-            const Spacer(),
-            if (item.info != null) item.info!,
-          ],
-        ),
-      ),
+    
+    Widget rowContent = Row(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        if (item.icon != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 10.0, 10.0, 10.0),
+            child: item.icon!,
+          ),
+        if (item.title != null) item.title!,
+        const Spacer(),
+        if (item.info != null) item.info!,
+      ],
     );
+    
+    rows.add(
+      item.fullWidthTappable 
+        ? InkWell(
+            onTap: item.onTap,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: rowContent,
+            ),
+          )
+        : InkWell(
+            onTap: item.onTap,
+            child: rowContent,
+          ),
+    );
+    
     if (items.length > 1 && i < items.length - 1) {
       rows.add(myDivider());
     }

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:todo_app/constants/constants.dart';
 import 'package:todo_app/firebase/forgot_password.dart';
 import 'package:todo_app/firebase/sign_up_page.dart';
 import 'package:todo_app/pages/settings/settings_page.dart';
@@ -136,7 +137,7 @@ class _SignInPageState extends State<SignInPage> {
                         ..onTap = (){
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => const ForgotPassword()
+                              builder: (_) => ForgotPassword(title: forgotPasswordTitle,)
                             ),
                           );
                         },

@@ -1,11 +1,18 @@
-// General
+// General 
 String appName = 'TODO-APP';
 
-// Alerts
+// Pages Title
+String forgotPasswordTitle = 'Password Recovery';
+String changePasswordTitle = 'Change Password';
+
+// Alerts //
+// // user logout alert
 String logoutTitle = 'Confirm Logout';
 String logoutContent = 'Do you want to logout from your account?';
+// // reset password alert
 String resetPasswordTitle = 'Email Sent';
-String resetPasswordContent = 'Password Reset Email has veeb sent!';
+String resetPasswordContent = 'Password Reset Email has been sent!';
+
 
 
 // Task

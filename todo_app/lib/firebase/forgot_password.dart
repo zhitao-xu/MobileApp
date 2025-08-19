@@ -5,12 +5,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_app/constants/constants.dart';
 import 'package:todo_app/firebase/sign_up_page.dart';
+import 'package:todo_app/firebase/util_functions.dart';
 import 'package:todo_app/utils/labeled_cupertino_text_field.dart';
 import 'package:todo_app/utils/theme.dart';
 import 'package:todo_app/widget/navigator_app_bar.dart';
 
 class ForgotPassword extends StatefulWidget{
-  const ForgotPassword({super.key});
+  final String title;
+  const ForgotPassword({super.key, required this.title});
 
   @override
   State<ForgotPassword> createState() => _ForgotPasswordState();
@@ -29,10 +31,6 @@ class _ForgotPasswordState extends State<ForgotPassword>{
   void popPage(){
     Navigator.of(context).pop();
   }
-
-  bool isValidEmail(String email) {
-    return RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email);
-  } 
 
   void sendMail() async{
     try{
@@ -96,7 +94,7 @@ class _ForgotPasswordState extends State<ForgotPassword>{
       backgroundColor: lightBlue,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(100), 
-        child: NavigatorAppBar(title: 'Password Recovery',),
+        child: NavigatorAppBar(title: widget.title,),
       ),
       body: Container(
         color: white,
